@@ -1,6 +1,6 @@
-use crate::println;
 use core::panic::PanicInfo;
 use sbi::shutdown;
+use crate::println;
 
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {

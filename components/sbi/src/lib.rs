@@ -5,7 +5,7 @@ pub fn console_putchar(c: usize) {
 }
 
 pub fn shutdown(failure: bool) -> ! {
-    use sbi_rt::{NoReason, Shutdown, SystemFailure, system_reset};
+    use sbi_rt::{system_reset, NoReason, Shutdown, SystemFailure};
     if !failure {
         system_reset(Shutdown, NoReason);
     } else {
