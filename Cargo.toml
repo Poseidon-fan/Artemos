@@ -5,6 +5,7 @@ edition = "2024"
 
 [dependencies]
 sbi = { path = "./components/sbi"}
+log = "0.4.26"
 
 [workspace]
 members = [

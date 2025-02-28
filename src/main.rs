@@ -2,22 +2,25 @@
 #![no_std]
 
 use core::arch::global_asm;
+use log::{info, warn};
 
 mod panic;
-mod console;
+mod logging;
 
 global_asm!(include_str!("entry.S"));
 
 #[unsafe(no_mangle)]
 pub fn kernel_main() -> ! {
     clear_bss();
-    println!("Hello, world!");
+    logging::init();
+    info!("Hello, world!");
+    warn!("This is a warning");
     panic!("Shutdown machine!");
 }
 
 fn clear_bss() {
     unsafe {
-        extern "C" {
+        unsafe extern "C" {
             fn sbss();
             fn ebss();
         }
