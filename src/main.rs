@@ -19,15 +19,11 @@ pub fn kernel_main() -> ! {
 }
 
 fn clear_bss() {
-    unsafe {
-        unsafe extern "C" {
-            fn sbss();
-            fn ebss();
-        }
-        let start = sbss as usize;
-        let end = ebss as usize;
-        (start..end).for_each(|a| {
-            (a as *mut u8).write_volatile(0);
-        });
+    extern "C" {
+        fn sbss();
+        fn ebss();
     }
+    (sbss as usize..ebss as usize).for_each(|a| {
+        unsafe { (a as *mut u8).write_volatile(0) }
+    });
 }
