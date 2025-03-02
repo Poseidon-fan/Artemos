@@ -6,8 +6,8 @@ pub mod console;
 mod lang_items;
 mod syscall;
 
-#[no_mangle]
-#[link_section = ".text.entry"]
+#[unsafe(no_mangle)]
+#[unsafe(link_section = ".text.entry")]
 pub extern "C" fn _start() -> ! {
     clear_bss();
     exit(main());
@@ -15,13 +15,13 @@ pub extern "C" fn _start() -> ! {
 }
 
 #[linkage = "weak"]
-#[no_mangle]
+#[unsafe(no_mangle)]
 fn main() -> i32 {
     panic!("Cannot find main!");
 }
 
 fn clear_bss() {
-    extern "C" {
+    unsafe extern "C" {
         fn start_bss();
         fn end_bss();
     }
