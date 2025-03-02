@@ -70,7 +70,7 @@ impl AppManager {
 
     unsafe fn load_app(&self, app_id: usize) {
         if app_id >= self.num_app {
-            error!("All applications completed!");
+            info!("All applications completed!");
             shutdown(false);
         }
         info!("[kernel] Loading app_{}", app_id);
