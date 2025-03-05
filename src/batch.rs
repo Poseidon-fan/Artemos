@@ -5,7 +5,7 @@ use crate::sync::UPSafeCell;
 use crate::trap::TrapContext;
 use core::arch::asm;
 use lazy_static::*;
-use log::{error, info};
+use log::{info};
 
 const USER_STACK_SIZE: usize = 4096 * 2;
 const KERNEL_STACK_SIZE: usize = 4096 * 2;
