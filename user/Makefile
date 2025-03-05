@@ -10,7 +10,7 @@ OBJDUMP := rust-objdump --arch-name=riscv64
 OBJCOPY := rust-objcopy --binary-architecture=riscv64
 
 elf:
-    @set RUSTFLAGS=-Clink-args=-Tuser/src/linker.ld -Cforce-frame-pointers=yes && cargo build --release
+	@set RUSTFLAGS=-Clink-args=-Tuser/src/linker.ld -Cforce-frame-pointers=yes && cargo build --release
 
 
 binary: elf
