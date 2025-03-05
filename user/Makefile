@@ -10,10 +10,15 @@ OBJDUMP := rust-objdump --arch-name=riscv64
 OBJCOPY := rust-objcopy --binary-architecture=riscv64
 
 elf:
+ifeq ($(OS),Windows_NT)
 	@set RUSTFLAGS=-Clink-args=-Tuser/src/linker.ld -Cforce-frame-pointers=yes && cargo build --release
+else
+    @RUSTFLAGS="-Clink-args=-Tuser/src/linker.ld -Cforce-frame-pointers=yes" cargo build --release
+endif
 
+$(BINS): $(TARGET_DIR)/%.bin: $(TARGET_DIR)/%
+	$(OBJCOPY) $< --strip-all -O binary $@
 
-binary: elf
-	@$(foreach elf, $(ELFS), $(OBJCOPY) $(elf) --strip-all -O binary $(patsubst $(TARGET_DIR)/%, $(TARGET_DIR)/%.bin, $(elf));)
+binary: elf $(BINS)
 
 build: binary
