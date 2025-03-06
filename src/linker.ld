@@ -1,5 +1,7 @@
 OUTPUT_ARCH(riscv)
+# 整个程序的入口点为之前定义的全局符号 _start
 ENTRY(_start)
+# 内核的初始化代码被放置在 0x80200000
 BASE_ADDRESS = 0x80200000;
 
 SECTIONS
