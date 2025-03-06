@@ -13,7 +13,7 @@ elf:
 ifeq ($(OS),Windows_NT)
 	@set RUSTFLAGS=-Clink-args=-Tuser/src/linker.ld -Cforce-frame-pointers=yes && cargo build --release
 else
-    @RUSTFLAGS="-Clink-args=-Tuser/src/linker.ld -Cforce-frame-pointers=yes" cargo build --release
+	@RUSTFLAGS="-Clink-args=-Tuser/src/linker.ld -Cforce-frame-pointers=yes" cargo build --release
 endif
 
 $(BINS): $(TARGET_DIR)/%.bin: $(TARGET_DIR)/%
