@@ -30,6 +30,11 @@ static USER_STACK: UserStack = UserStack {
     data: [0; USER_STACK_SIZE],
 };
 
+pub fn print_stack_location() {
+    println!("KERNEL_STACK: {:x}", KERNEL_STACK.get_sp());
+    println!("USER_STACK: {:x}", USER_STACK.get_sp());
+}
+
 impl KernelStack {
     fn get_sp(&self) -> usize {
         self.data.as_ptr() as usize + KERNEL_STACK_SIZE

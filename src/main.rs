@@ -20,6 +20,7 @@ global_asm!(include_str!("link_app.S"));
 
 #[unsafe(no_mangle)]
 pub fn kernel_main() -> ! {
+    batch::print_stack_location();
     clear_bss();
     logging::init();
     trap::init();
