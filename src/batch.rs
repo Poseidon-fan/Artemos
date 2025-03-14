@@ -3,15 +3,10 @@
 use sbi::shutdown;
 use crate::sync::UPSafeCell;
 use crate::trap::TrapContext;
+use crate::config::*;
 use core::arch::asm;
 use lazy_static::*;
 use log::{info};
-
-const USER_STACK_SIZE: usize = 4096 * 2;
-const KERNEL_STACK_SIZE: usize = 4096 * 2;
-const MAX_APP_NUM: usize = 16;
-const APP_BASE_ADDRESS: usize = 0x80400000;
-const APP_SIZE_LIMIT: usize = 0x20000;
 
 #[repr(align(4096))]
 struct KernelStack {
@@ -151,7 +146,7 @@ pub fn run_next_app() -> ! {
     }
     unsafe {
         __restore(KERNEL_STACK.push_context(TrapContext::app_init_context(
-            APP_BASE_ADDRESS,
+            APP_BASE_ADDRESS + current_app * APP_SIZE_LIMIT,
             USER_STACK.get_sp(),
         )) as *const _ as usize);
     }

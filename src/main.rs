@@ -12,6 +12,8 @@ mod batch;
 mod sync;
 mod trap;
 mod syscall;
+mod loader;
+mod config;
 
 // include_str! 宏的作用是将文件内容作为字符串常量嵌入到程序
 // global_asm! 宏的作用是将汇编代码嵌入到程序中
@@ -23,7 +25,7 @@ pub fn kernel_main() -> ! {
     clear_bss();
     logging::init();
     trap::init();
-    batch::init();
+    loader::load_apps();
     batch::run_next_app();
 }
 

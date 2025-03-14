@@ -11,9 +11,9 @@ OBJCOPY := rust-objcopy --binary-architecture=riscv64
 
 elf:
 ifeq ($(OS),Windows_NT)
-	@set RUSTFLAGS=-Clink-args=-Tuser/src/linker.ld -Cforce-frame-pointers=yes && cargo build --release
+	@python3 build.py
 else
-	@RUSTFLAGS="-Clink-args=-Tuser/src/linker.ld -Cforce-frame-pointers=yes" cargo build --release
+	@python3 build.py
 endif
 
 $(BINS): $(TARGET_DIR)/%.bin: $(TARGET_DIR)/%
