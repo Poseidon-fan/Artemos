@@ -38,3 +38,6 @@ pub fn write(fd: usize, buf: &[u8]) -> isize {
 pub fn exit(exit_code: i32) -> isize {
     sys_exit(exit_code)
 }
+
+// yield 是 Rust 的关键字，所以取名为 yield_
+pub fn yield_() -> isize { sys_yield() }

@@ -14,6 +14,7 @@ mod trap;
 mod syscall;
 mod loader;
 mod config;
+mod task;
 
 // include_str! 宏的作用是将文件内容作为字符串常量嵌入到程序
 // global_asm! 宏的作用是将汇编代码嵌入到程序中

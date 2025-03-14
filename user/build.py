@@ -1,4 +1,5 @@
 import os
+import platform
 
 base_address = 0x80400000
 step = 0x20000
@@ -19,6 +20,7 @@ for app in apps:
             lines.append(line)
     with open(linker, 'w+') as f:
         f.writelines(lines)
+    system = platform.system()
     # 构建应用
     if system == "Windows":
         # Windows 命令，使用 set 设置环境变量
