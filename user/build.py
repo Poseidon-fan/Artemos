@@ -21,6 +21,7 @@ for app in apps:
     with open(linker, 'w+') as f:
         f.writelines(lines)
     system = platform.system()
+    print(system)
     # 构建应用
     if system == "Windows":
         # Windows 命令，使用 set 设置环境变量
@@ -30,6 +31,7 @@ for app in apps:
         command = f'export RUSTFLAGS="-Clink-args=-Tuser/src/linker.ld -Cforce-frame-pointers=true" && cargo build --bin {app} --release'
     # 使用下面这行只能联系到全局的链接脚本
     # os.system('cargo build --bin %s --release' % app)
+    os.system(command)
     print('[build.py] application %s start with address %s' %(app, hex(base_address+step*app_id)))
     # 还原 linker 脚本，主要变化就是把 BASE_ADDRESS 改回了 0x80400000
     with open(linker, 'w+') as f:

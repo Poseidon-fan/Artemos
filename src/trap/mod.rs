@@ -14,7 +14,6 @@
 
 mod context;
 
-use crate::batch::run_next_app;
 use crate::syscall::syscall;
 use core::arch::global_asm;
 use log::{error};
@@ -51,11 +50,14 @@ pub fn trap_handler(cx: &mut TrapContext) -> &mut TrapContext {
         }
         Trap::Exception(Exception::StoreFault) | Trap::Exception(Exception::StorePageFault) => {
             error!("[kernel] PageFault in application, kernel killed it.");
-            run_next_app();
+            panic!("[kernel] Cannot continue!");
+            // 下面的这个函数再也没有了
+            // run_next_app();
         }
         Trap::Exception(Exception::IllegalInstruction) => {
             error!("[kernel] IllegalInstruction in application, kernel killed it.");
-            run_next_app();
+            panic!("[kernel] Cannot continue!");
+            // run_next_app();
         }
         _ => {
             panic!(

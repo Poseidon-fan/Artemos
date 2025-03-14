@@ -8,7 +8,6 @@ use core::arch::global_asm;
 mod panic;
 #[macro_use]
 mod logging;
-mod batch;
 mod sync;
 mod trap;
 mod syscall;
@@ -27,7 +26,8 @@ pub fn kernel_main() -> ! {
     logging::init();
     trap::init();
     loader::load_apps();
-    batch::run_next_app();
+    task::run_first_task();
+    panic!("Unreachable in rust_main!");
 }
 
 fn clear_bss() {
