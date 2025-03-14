@@ -19,8 +19,13 @@ for app in apps:
             lines.append(line)
     with open(linker, 'w+') as f:
         f.writelines(lines)
-    # 构建当前的应用
-    os.system('set RUSTFLAGS=-Clink-args=-Tuser/src/linker.ld -Cforce-frame-pointers=true && cargo build --bin %s --release' % app)
+    # 构建应用
+    if system == "Windows":
+        # Windows 命令，使用 set 设置环境变量
+        command = f"set RUSTFLAGS=-Clink-args=-Tuser/src/linker.ld -Cforce-frame-pointers=true && cargo build --bin {app} --release"
+    else:  # macOS 的 platform.system() 返回 "Darwin"
+        # macOS 命令，使用 export 设置环境变量
+        command = f'export RUSTFLAGS="-Clink-args=-Tuser/src/linker.ld -Cforce-frame-pointers=true" && cargo build --bin {app} --release'
     # 使用下面这行只能联系到全局的链接脚本
     # os.system('cargo build --bin %s --release' % app)
     print('[build.py] application %s start with address %s' %(app, hex(base_address+step*app_id)))
