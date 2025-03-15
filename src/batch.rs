@@ -134,9 +134,16 @@ pub fn print_app_info() {
 pub fn run_next_app() -> ! {
     let mut app_manager = APP_MANAGER.exclusive_access();
     let current_app = app_manager.get_current_app();
-    unsafe {
-        app_manager.load_app(current_app);
+    unsafe extern "C" {
+        fn _num_app();
     }
+    let num_app_ptr = _num_app as usize as *const usize;
+    let num_app = unsafe { num_app_ptr.read_volatile() };
+    if current_app >= num_app {
+        info!("All applications completed!");
+        shutdown(false);
+    }
+    info!("[kernel] Loading app_{}", current_app);
     app_manager.move_to_next_app();
     drop(app_manager);
     // before this we have to drop local variables related to resources manually
@@ -146,7 +153,7 @@ pub fn run_next_app() -> ! {
     }
     unsafe {
         __restore(KERNEL_STACK.push_context(TrapContext::app_init_context(
-            APP_BASE_ADDRESS + current_app * APP_SIZE_LIMIT,
+            APP_BASE_ADDRESS,
             USER_STACK.get_sp(),
         )) as *const _ as usize);
     }
