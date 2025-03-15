@@ -41,3 +41,6 @@ pub fn exit(exit_code: i32) -> isize {
 
 // yield 是 Rust 的关键字，所以取名为 yield_
 pub fn yield_() -> isize { sys_yield() }
+pub fn get_time() -> isize {
+    sys_get_time()
+}

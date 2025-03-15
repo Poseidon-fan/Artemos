@@ -17,11 +17,7 @@ mod context;
 use crate::syscall::syscall;
 use core::arch::global_asm;
 use log::{error};
-use riscv::register::{
-    mtvec::TrapMode,
-    scause::{self, Exception, Trap},
-    stval, stvec,
-};
+use riscv::register::{mtvec::TrapMode, scause::{self, Exception, Interrupt, Trap}, sie, stval, stvec};
 
 global_asm!(include_str!("trap.S"));
 
@@ -32,6 +28,12 @@ pub fn init() {
             fn __alltraps();
         }
         stvec::write(__alltraps as usize, TrapMode::Direct);
+    }
+}
+
+pub fn enable_timer_interrupt() {
+    unsafe {
+        sie::set_stimer();
     }
 }
 
@@ -59,6 +61,10 @@ pub fn trap_handler(cx: &mut TrapContext) -> &mut TrapContext {
             panic!("[kernel] Cannot continue!");
             // run_next_app();
         }
+        Trap::Interrupt(Interrupt::SupervisorTimer) => {
+            set_next_trigger();
+            suspend_current_and_run_next();
+        }
         _ => {
             panic!(
                 "Unsupported trap {:?}, stval = {:#x}!",
@@ -71,3 +77,5 @@ pub fn trap_handler(cx: &mut TrapContext) -> &mut TrapContext {
 }
 
 pub use context::TrapContext;
+use crate::task::suspend_current_and_run_next;
+use crate::timer::set_next_trigger;

@@ -5,15 +5,19 @@
 
 use core::arch::global_asm;
 
+#[path = "boards/qemu.rs"]
+mod board;
+
 mod panic;
 #[macro_use]
 mod logging;
 mod sync;
-mod trap;
 mod syscall;
 mod loader;
 mod config;
 mod task;
+mod timer;
+mod trap;
 
 // include_str! 宏的作用是将文件内容作为字符串常量嵌入到程序
 // global_asm! 宏的作用是将汇编代码嵌入到程序中
@@ -25,7 +29,9 @@ pub fn kernel_main() -> ! {
     clear_bss();
     logging::init();
     trap::init();
-    loader::load_apps();
+    loader::load_apps();trap::
+    enable_timer_interrupt();
+    timer::set_next_trigger();
     task::run_first_task();
     panic!("Unreachable in rust_main!");
 }

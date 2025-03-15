@@ -13,3 +13,8 @@ pub fn shutdown(failure: bool) -> ! {
     }
     unreachable!()
 }
+
+// 用来设置 mtimecmp 的值
+pub fn set_timer(timer: usize) {
+    sbi_rt::set_timer(timer as _);
+}
