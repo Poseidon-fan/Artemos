@@ -1,3 +1,5 @@
+use crate::syscall::sys_exit;
+
 #[panic_handler]
 fn panic_handler(panic_info: &core::panic::PanicInfo) -> ! {
     let err = panic_info.message().as_str().unwrap();
