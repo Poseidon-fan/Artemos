@@ -153,7 +153,7 @@ pub fn run_next_app() -> ! {
     }
     unsafe {
         __restore(KERNEL_STACK.push_context(TrapContext::app_init_context(
-            APP_BASE_ADDRESS,
+            APP_BASE_ADDRESS + current_app * APP_SIZE_LIMIT,
             USER_STACK.get_sp(),
         )) as *const _ as usize);
     }
