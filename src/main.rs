@@ -34,7 +34,7 @@ pub fn kernel_main() -> ! {
     logging::init();
     trap::init();
     loader::load_apps();
-    // mm::heap_test();
+    mm::heap_test();
     trap::enable_timer_interrupt();
     timer::set_next_trigger();
     task::run_first_task();
