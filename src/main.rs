@@ -2,6 +2,9 @@
 // 不再使用 Rust 标准库 std，转而使用核心库 core
 // 核心库 core 可以直接在裸机上使用，但 std 不能，需要 OS 的支持
 #![no_std]
+#![feature(alloc_error_handler)]
+
+extern crate alloc;
 
 use core::arch::global_asm;
 
@@ -18,6 +21,7 @@ mod config;
 mod task;
 mod timer;
 mod trap;
+mod mm;
 
 // include_str! 宏的作用是将文件内容作为字符串常量嵌入到程序
 // global_asm! 宏的作用是将汇编代码嵌入到程序中
@@ -29,8 +33,9 @@ pub fn kernel_main() -> ! {
     clear_bss();
     logging::init();
     trap::init();
-    loader::load_apps();trap::
-    enable_timer_interrupt();
+    loader::load_apps();
+    // mm::heap_test();
+    trap::enable_timer_interrupt();
     timer::set_next_trigger();
     task::run_first_task();
     panic!("Unreachable in rust_main!");
