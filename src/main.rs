@@ -14,6 +14,8 @@ mod board;
 mod panic;
 #[macro_use]
 mod logging;
+#[macro_use]
+extern crate bitflags;
 mod sync;
 mod syscall;
 mod loader;
