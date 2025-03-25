@@ -42,6 +42,7 @@ SECTIONS
 
     . = ALIGN(4K);
     ebss = .;
+    # 内核数据的终止物理地址
     ekernel = .;
 
     /DISCARD/ : {
