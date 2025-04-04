@@ -1,8 +1,8 @@
+use crate::mm::address::{PhysPageNum, VirtPageNum};
+use crate::mm::frame_allocator::{FrameTracker, frame_alloc};
 use alloc::vec;
 use alloc::vec::Vec;
 use bitflags::*;
-use crate::mm::address::{PhysPageNum, VirtPageNum};
-use crate::mm::frame_allocator::{frame_alloc, FrameTracker};
 
 bitflags! {
     pub struct PTEFlags: u8 {
@@ -33,9 +33,7 @@ impl PageTableEntry {
 
     // 生成一个全为 0 的页表项
     pub fn empty() -> Self {
-        PageTableEntry {
-            bits: 0,
-        }
+        PageTableEntry { bits: 0 }
     }
 
     // 从页表项中取出物理页号
@@ -118,10 +116,7 @@ impl PageTable {
         }
         result
     }
-}
 
-// 手动修改或删除页表项
-impl PageTable {
     pub fn map(&mut self, vpn: VirtPageNum, ppn: PhysPageNum, flags: PTEFlags) {
         let pte = self.find_pte_create(vpn).unwrap();
         assert!(!pte.is_valid(), "vpn {:?} is mapped before mapping", vpn);
@@ -145,7 +140,6 @@ impl PageTable {
     }
     // 查找页表
     pub fn translate(&self, vpn: VirtPageNum) -> Option<PageTableEntry> {
-        self.find_pte(vpn)
-            .map(|pte| {pte.clone()})
+        self.find_pte(vpn).map(|pte| pte.clone())
     }
 }
