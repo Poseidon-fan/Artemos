@@ -1,4 +1,6 @@
 use alloc::vec::Vec;
+use core::fmt;
+use core::fmt::{Debug, Formatter};
 use lazy_static::lazy_static;
 use crate::config::MEMORY_END;
 use crate::mm::address::{PhysAddr, PhysPageNum};
@@ -106,6 +108,12 @@ impl FrameTracker {
             *i = 0;
         }
         Self { ppn }
+    }
+}
+
+impl Debug for FrameTracker {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        f.write_fmt(format_args!("FrameTracker:PPN={:#x}", self.ppn.0))
     }
 }
 
