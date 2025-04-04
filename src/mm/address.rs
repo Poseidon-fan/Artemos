@@ -133,6 +133,21 @@ impl From<PhysPageNum> for PhysAddr {
     }
 }
 
+// 从虚拟页号中解析出三级页表的索引
+impl VirtPageNum {
+    pub fn indexes(&self) -> [usize; 3] {
+        let mut vpn = self.0;
+        let mut idx = [0usize; 3];
+        for i in (0..3).rev() {
+            idx[i] = vpn & 511;
+            vpn >>= 9;
+        }
+        idx
+    }
+}
+
+
+// 不同的引用类型对应于物理页帧上不同的内存布局
 impl PhysPageNum {
     pub fn get_pte_array(&self) -> &'static mut [PageTableEntry] {
         let pa: PhysAddr = (*self).into();
