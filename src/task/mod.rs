@@ -1,11 +1,14 @@
+use alloc::vec::Vec;
+use core::cell::RefCell;
 use lazy_static::lazy_static;
 use sbi::shutdown;
 use crate::config::*;
-use crate::loader::{get_num_app, init_app_cx};
+use crate::loader::{get_app_data, get_num_app, init_app_cx};
 use crate::sync::UPSafeCell;
 use crate::task::context::TaskContext;
 use crate::task::switch::__switch;
 use crate::task::task::{TaskControlBlock, TaskStatus};
+use crate::trap::TrapContext;
 
 mod task;
 mod context;
@@ -17,34 +20,32 @@ pub struct TaskManager {
 }
 
 struct TaskManagerInner {
-    tasks: [TaskControlBlock; MAX_APP_NUM],
+    tasks: Vec<TaskControlBlock>,
     current_task: usize,
 }
 
 lazy_static! {
     pub static ref TASK_MANAGER: TaskManager = {
-        // 获取应用总数
+        println!("init TASK_MANAGER");
+        // 获取应用数量
         let num_app = get_num_app();
-        // 表示所有任务都未初始化
-        let mut tasks = [
-            TaskControlBlock {
-                task_cx: TaskContext::zero_init(),
-                task_status: TaskStatus::UnInit
-            };
-            MAX_APP_NUM
-        ];
-        // 初始化所有任务控制块，将所有任务设置为 Ready
-        // 并初始化它的任务上下文
+        println!("num_app = {}", num_app);
+        let mut tasks: Vec<TaskControlBlock> = Vec::new();
+        // 获取每个任务的任务控制块，并推入 tasks 中
         for i in 0..num_app {
-            tasks[i].task_cx = TaskContext::goto_restore(init_app_cx(i));
-            tasks[i].task_status = TaskStatus::Ready;
+            tasks.push(TaskControlBlock::new(
+                get_app_data(i),
+                i,
+            ));
         }
         TaskManager {
             num_app,
-            inner: unsafe { UPSafeCell::new(TaskManagerInner {
-                tasks,
-                current_task: 0,
-            })},
+            inner: unsafe{
+               UPSafeCell::new(TaskManagerInner {
+                    tasks,
+                    current_task: 0,
+               })
+            }
         }
     };
 }
@@ -116,6 +117,20 @@ impl TaskManager {
             shutdown(false);
         }
     }
+
+    // 获得当前正在执行的应用的地址空间的 token
+    fn get_current_token(&self) -> usize {
+        let inner = self.inner.exclusive_access();
+        let current = inner.current_task;
+        inner.tasks[current].get_user_token()
+    }
+
+    // 获得当前正在执行的应用的地址空间中的 Trap 上下文
+    fn get_current_trap_cx(&self) -> &mut TrapContext {
+        let inner = self.inner.exclusive_access();
+        let current = inner.current_task;
+        inner.tasks[current].get_trap_cx()
+    }
 }
 
 pub fn run_first_task() {
@@ -147,4 +162,12 @@ pub fn suspend_current_and_run_next() {
 pub fn exit_current_and_run_next() {
     mark_current_exited();
     run_next_task();
+}
+
+pub fn current_user_token() -> usize {
+    TASK_MANAGER.get_current_token()
+}
+
+pub fn current_trap_cx() -> &'static mut TrapContext {
+    TASK_MANAGER.get_current_trap_cx()
 }
