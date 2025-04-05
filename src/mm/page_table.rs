@@ -77,10 +77,8 @@ impl PageTable {
             frames: vec![frame],
         }
     }
-}
 
-// 根据虚拟地址寻找页表项
-impl PageTable {
+    // 根据虚拟地址寻找页表项
     fn find_pte_create(&mut self, vpn: VirtPageNum) -> Option<&mut PageTableEntry> {
         let idxs = vpn.indexes();
         let mut ppn = self.root_ppn;
@@ -101,6 +99,7 @@ impl PageTable {
         }
         result
     }
+
     fn find_pte(&self, vpn: VirtPageNum) -> Option<&mut PageTableEntry> {
         let idxs = vpn.indexes();
         let mut ppn = self.root_ppn;
@@ -118,10 +117,8 @@ impl PageTable {
         }
         result
     }
-}
 
-// 手动修改或删除页表项
-impl PageTable {
+    // 手动修改或删除页表项
     pub fn map(&mut self, vpn: VirtPageNum, ppn: PhysPageNum, flags: PTEFlags) {
         let pte = self.find_pte_create(vpn).unwrap();
         assert!(!pte.is_valid(), "vpn {:?} is mapped before mapping", vpn);
@@ -132,10 +129,8 @@ impl PageTable {
         assert!(pte.is_valid(), "vpn {:?} is invalid before unmapping", vpn);
         *pte = PageTableEntry::empty();
     }
-}
 
-// 模拟 MMU 硬件手动查页表
-impl PageTable {
+    // 模拟 MMU 硬件手动查页表
     // 临时创建一个专用来手动查页表的 PageTable
     pub fn from_token(satp: usize) -> Self {
         Self {
