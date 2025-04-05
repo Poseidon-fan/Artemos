@@ -10,11 +10,11 @@ pub struct TrapContext {
     pub sepc: usize,
     // 内核
     // 相当于内核的地址空间
-    pub kernel_satp: usize,
+    // pub kernel_satp: usize,
     // 当前应用在内核地址空间中的内核栈栈顶的虚拟地址
-    pub kernel_sp: usize,
+    // pub kernel_sp: usize,
     // 内核中 trap handler 入口点的虚拟地址
-    pub trap_handler: usize,
+    // pub trap_handler: usize,
 }
 
 impl TrapContext {

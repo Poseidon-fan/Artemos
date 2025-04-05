@@ -4,8 +4,8 @@ use alloc::vec::Vec;
 use core::arch::asm;
 use lazy_static::lazy_static;
 use riscv::register::satp;
-use crate::config::{MEMORY_END, PAGE_SIZE, USER_STACK_SIZE};
-use crate::mm::address::{PhysPageNum, StepByOne, VPNRange, VirtAddr, VirtPageNum};
+use crate::config::{MEMORY_END, PAGE_SIZE, TRAMPOLINE, TRAP_CONTEXT, USER_STACK_SIZE};
+use crate::mm::address::{PhysAddr, PhysPageNum, StepByOne, VPNRange, VirtAddr, VirtPageNum};
 use crate::mm::frame_allocator::{frame_alloc, FrameTracker};
 use crate::mm::page_table::{PTEFlags, PageTable};
 use crate::sync::UPSafeCell;
@@ -184,6 +184,15 @@ impl MemorySet {
             MapType::Framed,
             permission,
         ), None);
+    }
+
+    // 映射跳板页面
+    fn map_trampoline(&mut self) {
+        self.page_table.map(
+            VirtAddr::from(TRAMPOLINE).into(),
+            PhysAddr::from(strampoline as usize).into(),
+            PTEFlags::R | PTEFlags::X,
+        );
     }
 
     // 生成内核的地址空间
