@@ -7,6 +7,7 @@
 extern crate alloc;
 
 use core::arch::global_asm;
+use log::info;
 
 #[path = "boards/qemu.rs"]
 mod board;
@@ -34,9 +35,13 @@ global_asm!(include_str!("link_app.S"));
 pub fn kernel_main() -> ! {
     clear_bss();
     logging::init();
+    info!("[kernel] Hello, world!");
+    mm::init();
+    info!("[kernel] back to world!");
+    // 检查内核地址空间的多级页表是否被正确设置
+    mm::remap_test();
     trap::init();
     loader::load_apps();
-    mm::frame_allocator_test();
     trap::enable_timer_interrupt();
     timer::set_next_trigger();
     task::run_first_task();

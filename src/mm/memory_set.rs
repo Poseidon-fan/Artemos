@@ -1,11 +1,16 @@
 use alloc::collections::BTreeMap;
+use alloc::sync::Arc;
 use alloc::vec::Vec;
+use core::arch::asm;
+use lazy_static::lazy_static;
+use riscv::register::satp;
 use crate::config::{MEMORY_END, PAGE_SIZE, USER_STACK_SIZE};
 use crate::mm::address::{PhysPageNum, StepByOne, VPNRange, VirtAddr, VirtPageNum};
 use crate::mm::frame_allocator::{frame_alloc, FrameTracker};
 use crate::mm::page_table::{PTEFlags, PageTable};
+use crate::sync::UPSafeCell;
 
-extern "C" {
+unsafe extern "C" {
     fn stext();
     fn etext();
     fn srodata();
@@ -16,6 +21,13 @@ extern "C" {
     fn ebss();
     fn ekernel();
     fn strampoline();
+}
+
+// 创建内核地址空间的全局实例
+lazy_static! {
+    pub static ref KERNEL_SPACE: Arc<UPSafeCell<MemorySet>> = Arc::new(unsafe {
+        UPSafeCell::new(MemorySet::new_kernel()
+    )});
 }
 
 #[derive(Copy, Clone, PartialEq, Debug)]
@@ -142,6 +154,15 @@ impl MemorySet {
         }
     }
 
+    // 在内核地址空间初始化时使用，激活 SV39 分页机制
+    pub fn activate(&self) {
+        let satp = self.page_table.token();
+        unsafe {
+            satp::write(satp);
+            asm!("sfence.vma");
+        }
+    }
+
     // 在当前地址空间插入一个新的逻辑段
     // 如果它是以 Framed 方式映射到物理内存，还能可选地在被映射到的物理页帧上写入初始化数据
     fn push(&mut self, mut map_area: MapArea, data: Option<&[u8]>) {
@@ -216,8 +237,6 @@ impl MemorySet {
 
     // 分析应用的 ELF 文件格式的内容，解析出各数据段并生成对应的地址空间
     // 是生成用户程序的地址空间时需要用的
-    /// Include sections in elf and trampoline and TrapContext and user stack,
-    /// also returns user_sp and entry point.
     pub fn from_elf(elf_data: &[u8]) -> (Self, usize, usize) {
         let mut memory_set = Self::new_bare();
         // 将跳板插入到应用地址空间
@@ -277,4 +296,24 @@ impl MemorySet {
         // 返回应用程序地址空间，用户栈地址，以及从 ELF 里解析出的程序入口点
         (memory_set, user_stack_top, elf.header.pt2.entry_point() as usize)
     }
+}
+
+pub fn remap_test() {
+    let mut kernel_space = KERNEL_SPACE.exclusive_access();
+    let mid_text: VirtAddr = ((stext as usize + etext as usize) / 2).into();
+    let mid_rodata: VirtAddr = ((srodata as usize + erodata as usize) / 2).into();
+    let mid_data: VirtAddr = ((sdata as usize + edata as usize) / 2).into();
+    assert_eq!(
+        kernel_space.page_table.translate(mid_text.floor()).unwrap().writable(),
+        false
+    );
+    assert_eq!(
+        kernel_space.page_table.translate(mid_rodata.floor()).unwrap().writable(),
+        false,
+    );
+    assert_eq!(
+        kernel_space.page_table.translate(mid_data.floor()).unwrap().executable(),
+        false,
+    );
+    println!("remap_test passed!");
 }
