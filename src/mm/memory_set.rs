@@ -113,6 +113,7 @@ impl MapArea {
         }
     }
 
+    // 将VPN映射到PPN，并更新page_table的页表项
     pub fn map_one(&mut self, page_table: &mut PageTable, vpn: VirtPageNum) {
         let ppn: PhysPageNum;
         match self.map_type {
@@ -126,7 +127,7 @@ impl MapArea {
             }
         }
         let pte_flags = PTEFlags::from_bits(self.map_perm.bits).unwrap();
-        page_table.map(vpn, ppn, pte_flags);
+        page_table.map(vpn, ppn, pte_flags); // page_table 来自 MemorySet push 函数里的 page_table 字段，表示整个地址空间的多级页表
     }
     pub fn unmap_one(&mut self, page_table: &mut PageTable, vpn: VirtPageNum) {
         match self.map_type {
@@ -197,6 +198,7 @@ impl MemorySet {
 
     // 生成内核的地址空间
     // 映射跳板和地址空间中最低 256G 中的内核逻辑段
+    // 但是恒等映射其实只映射了BASE_ADDRESS：0x80200000到MEMORY_END：0x80800000的地址，总共6MB，小于硬件的8MB
     pub fn new_kernel() -> Self {
         let mut memory_set = Self::new_bare();
         // map trampoline
