@@ -4,10 +4,17 @@ use riscv::register::sstatus::{self, Sstatus, SPP};
 pub struct TrapContext {
     /// general regs[0..31]
     pub x: [usize; 32],
-    /// CSR sstatus      
+    /// CSR sstatus
     pub sstatus: Sstatus,
     /// CSR sepc
     pub sepc: usize,
+    // 内核
+    // 相当于内核的地址空间
+    pub kernel_satp: usize,
+    // 当前应用在内核地址空间中的内核栈栈顶的虚拟地址
+    pub kernel_sp: usize,
+    // 内核中 trap handler 入口点的虚拟地址
+    pub trap_handler: usize,
 }
 
 impl TrapContext {
