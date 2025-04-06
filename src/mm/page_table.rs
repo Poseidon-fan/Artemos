@@ -1,4 +1,4 @@
-use crate::mm::address::{PhysPageNum, VirtPageNum};
+use crate::mm::address::{PhysPageNum, StepByOne, VirtAddr, VirtPageNum};
 use crate::mm::frame_allocator::{FrameTracker, frame_alloc};
 use alloc::vec;
 use alloc::vec::Vec;
@@ -144,4 +144,36 @@ impl PageTable {
     pub fn token(&self) -> usize {
         8usize << 60 | self.root_ppn.0
     }
+}
+
+// 参数：token：某个应用地址空间的 token
+// ptr 和 len 分别表示起始地址和长度
+// 以向量的形式返回一组可以在内核空间中直接访问的字节数组切片
+pub fn translated_byte_buffer(
+    token: usize,
+    ptr: *const u8,
+    len: usize
+) -> Vec<&'static [u8]> {
+    let page_table = PageTable::from_token(token);
+    let mut start = ptr as usize;
+    let end = start + len;
+    let mut v = Vec::new();
+    while start < end {
+        let start_va = VirtAddr::from(start);
+        let mut vpn = start_va.floor();
+        let ppn = page_table
+            .translate(vpn)
+            .unwrap()
+            .ppn();
+        vpn.step();
+        let mut end_va: VirtAddr = vpn.into();
+        end_va = end_va.min(VirtAddr::from(end));
+        if end_va.page_offset() == 0 {
+            v.push(&mut ppn.get_bytes_array()[start_va.page_offset()..]);
+        } else {
+            v.push(&mut ppn.get_bytes_array()[start_va.page_offset()..end_va.page_offset()]);
+        }
+        start = end_va.into();
+    }
+    v
 }
