@@ -41,7 +41,7 @@ __alltraps:
     # 将 sp 修改为应用内核栈顶的地址
     ld sp, 35*8(sp)
     # 切换到内核地址空间
-    csrw satp, t0
+    csrw satp, t0 #! 这之后指令地址必须在切换前后都有效，所以引出了跳板
     sfence.vma
     # 进入到 trap_handler
     # 注意这里没有使用 call，也就是说没有修改 ra
