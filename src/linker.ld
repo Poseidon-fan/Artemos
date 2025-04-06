@@ -1,5 +1,7 @@
 OUTPUT_ARCH(riscv)
+# 整个程序的入口点为之前定义的全局符号 _start
 ENTRY(_start)
+# 内核的初始化代码被放置在 0x80200000
 BASE_ADDRESS = 0x80200000;
 
 SECTIONS
@@ -10,6 +12,10 @@ SECTIONS
     stext = .;
     .text : {
         *(.text.entry)
+        . = ALIGN(4K);
+        strampoline = .;
+        *(.text.trampoline);
+        . = ALIGN(4K);
         *(.text .text.*)
     }
 
@@ -31,6 +37,7 @@ SECTIONS
 
     . = ALIGN(4K);
     edata = .;
+    sbss_with_stack = .;
     .bss : {
         *(.bss.stack)
         sbss = .;
@@ -40,6 +47,7 @@ SECTIONS
 
     . = ALIGN(4K);
     ebss = .;
+    # 内核数据的终止物理地址
     ekernel = .;
 
     /DISCARD/ : {

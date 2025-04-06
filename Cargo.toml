@@ -2,12 +2,22 @@
 name = "Artemos"
 version = "0.1.0"
 edition = "2024"
+build = false
 
 [dependencies]
 sbi = { path = "./components/sbi"}
 log = "0.4.26"
+lazy_static = { version = "1.4.0", features = ["spin_no_std"] }
+buddy_system_allocator = "0.6"
+xmas-elf = "0.7.0"
+bitflags = "1.2.1"
+riscv = { git = "https://github.com/rcore-os/riscv", features = ["inline-asm"] }
+
+[profile.release]
+debug = true
 
 [workspace]
 members = [
-    "components/*"
+    "components/*",
+    "user"
 ]
