@@ -3,6 +3,7 @@ use alloc::sync::Arc;
 use alloc::vec::Vec;
 use core::arch::asm;
 use lazy_static::lazy_static;
+use log::info;
 use riscv::register::satp;
 use crate::config::{MEMORY_END, PAGE_SIZE, TRAMPOLINE, TRAP_CONTEXT, USER_STACK_SIZE};
 use crate::mm::address::{PhysAddr, PhysPageNum, StepByOne, VPNRange, VirtAddr, VirtPageNum};
@@ -150,7 +151,7 @@ pub struct MemorySet {
 impl MemorySet {
     // 新建一个 MemorySet
     //? 我不太懂为什么要pub
-    pub fn new_bare() -> Self {
+    fn new_bare() -> Self {
         Self {
             page_table: PageTable::new(),
             areas: Vec::new(),
