@@ -1,13 +1,11 @@
-use crate::mm::heap_allocator::init_heap;
-
 mod heap_allocator;
 mod address;
 mod page_table;
 mod frame_allocator;
 mod memory_set;
-pub use memory_set::KERNEL_SPACE;
-pub use memory_set::remap_test;
-
+pub use page_table::*;
+pub use memory_set::*;
+pub use address::*;
 
 pub fn heap_test() {
     heap_allocator::init_heap();

@@ -1,6 +1,5 @@
-use riscv::addr::VirtAddr;
 use crate::config::{kernel_stack_position, TRAP_CONTEXT};
-use crate::mm::KERNEL_SPACE;
+use crate::mm::{MapPermission, MemorySet, PhysPageNum, KERNEL_SPACE, VirtAddr};
 use crate::task::context::TaskContext;
 use crate::trap::{trap_handler, TrapContext};
 
@@ -12,7 +11,6 @@ pub enum TaskStatus {
     Exited, // 已退出
 }
 
-#[derive(Copy, Clone)]
 pub struct TaskControlBlock {
     pub task_cx: TaskContext,
     pub task_status: TaskStatus,

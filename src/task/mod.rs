@@ -1,9 +1,7 @@
 use alloc::vec::Vec;
-use core::cell::RefCell;
 use lazy_static::lazy_static;
 use sbi::shutdown;
-use crate::config::*;
-use crate::loader::{get_app_data, get_num_app, init_app_cx};
+use crate::loader::{get_app_data, get_num_app};
 use crate::sync::UPSafeCell;
 use crate::task::context::TaskContext;
 use crate::task::switch::__switch;

@@ -8,6 +8,7 @@ use crate::config::{MEMORY_END, PAGE_SIZE, TRAMPOLINE, TRAP_CONTEXT, USER_STACK_
 use crate::mm::address::{PhysAddr, PhysPageNum, StepByOne, VPNRange, VirtAddr, VirtPageNum};
 use crate::mm::frame_allocator::{frame_alloc, FrameTracker};
 use crate::mm::page_table::{PTEFlags, PageTable};
+use crate::mm::PageTableEntry;
 use crate::sync::UPSafeCell;
 
 unsafe extern "C" {
@@ -154,6 +155,10 @@ impl MemorySet {
             page_table: PageTable::new(),
             areas: Vec::new(),
         }
+    }
+
+    pub fn token(&self) -> usize {
+        self.page_table.token()
     }
 
     // 在内核地址空间初始化时使用，激活 SV39 分页机制
@@ -307,6 +312,10 @@ impl MemorySet {
         ), None);
         // 返回应用程序地址空间，用户栈地址，以及从 ELF 里解析出的程序入口点
         (memory_set, user_stack_top, elf.header.pt2.entry_point() as usize)
+    }
+
+    pub fn translate(&self, vpn: VirtPageNum) -> Option<PageTableEntry> {
+        self.page_table.translate(vpn)
     }
 }
 

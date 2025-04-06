@@ -44,7 +44,7 @@ fn set_kernel_trap_entry() {
 }
 
 // 在进行 S 态下的 Trap 时，直接 panic 退出
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub fn trap_from_kernel() -> ! {
     panic!("a trap from kernel!");
 }
@@ -93,14 +93,14 @@ fn set_user_trap_entry() {
     }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub fn trap_return() -> ! {
     // 设置回 Trap 处理的入口是跳板页面
     set_user_trap_entry();
     // __restore 的两个参数
     let trap_cx_ptr = TRAP_CONTEXT;
     let user_satp = current_user_token();
-    extern "C" {
+    unsafe extern "C" {
         fn __alltraps();
         fn __restore();
     }

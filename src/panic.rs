@@ -1,8 +1,6 @@
 use core::panic::PanicInfo;
 use log::error;
 use sbi::shutdown;
-use crate::println;
-use crate::syscall::syscall;
 
 // 用于标记 core 中的 panic! 宏要对接的函数
 #[panic_handler]
