@@ -14,7 +14,7 @@ SECTIONS
         *(.text.entry)
         . = ALIGN(4K);
         strampoline = .;
-        *(.text.trampoline);
+        *(.text.trampoline); # 确保正好一页，以防被用户看到
         . = ALIGN(4K);
         *(.text .text.*)
     }
