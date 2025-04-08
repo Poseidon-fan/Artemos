@@ -41,7 +41,7 @@ pub fn kernel_main() -> ! {
     // 检查内核地址空间的多级页表是否被正确设置
     mm::remap_test();
     // trap::init();
-    //trap::enable_interrupt();
+    // trap::enable_interrupt();
     trap::enable_timer_interrupt();
     timer::set_next_trigger();
     task::run_first_task();
