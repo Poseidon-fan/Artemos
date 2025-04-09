@@ -44,7 +44,7 @@ pub fn kernel_main() -> ! {
     // trap::enable_interrupt();
     task::add_initproc();
     println!("after initproc!");
-    trap::init();
+    // trap::init();
     trap::enable_timer_interrupt();
     timer::set_next_trigger();
     loader::list_apps();

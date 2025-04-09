@@ -36,6 +36,7 @@ impl FrameAllocator for StackFrameAllocator {
         } else {
             // 从 current 位置处分配
             if self.current == self.end {
+                println!("[kernel] no more stack frames {}", self.current);
                 None
             } else {
                 self.current += 1;
@@ -87,7 +88,7 @@ pub fn frame_alloc() -> Option<FrameTracker> {
     FRAME_ALLOCATOR
         .exclusive_access()
         .alloc()
-        .map(|ppn| FrameTracker::new(ppn))
+        .map(FrameTracker::new)
 }
 
 fn frame_dealloc(ppn: PhysPageNum) {

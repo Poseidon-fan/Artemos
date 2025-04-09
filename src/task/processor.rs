@@ -66,6 +66,7 @@ pub fn current_trap_cx() -> &'static mut TrapContext {
 pub fn run_tasks() {
     loop {
         let mut processor = PROCESSOR.exclusive_access();
+        // 从就绪队列中取出队首
         if let Some(task) = fetch_task() {
             // 获取 switch 的第一个参数
             let idle_task_cx_ptr = processor.get_idle_task_cx_ptr();
