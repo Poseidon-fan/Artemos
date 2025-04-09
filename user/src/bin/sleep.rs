@@ -4,15 +4,27 @@
 #[macro_use]
 extern crate user_lib;
 
-use user_lib::{get_time, yield_};
+use user_lib::{exit, fork, get_time, sleep, waitpid};
+
+fn sleepy() {
+    let time: usize = 100;
+    for i in 0..5 {
+        sleep(time);
+        println!("sleep {} x {} msecs.", i + 1, time);
+    }
+    exit(0);
+}
 
 #[unsafe(no_mangle)]
-fn main() -> i32 {
-    let current_timer = get_time();
-    let wait_for = current_timer + 3000;
-    while get_time() < wait_for {
-        yield_();
+pub fn main() -> i32 {
+    let current_time = get_time();
+    let pid = fork();
+    let mut exit_code: i32 = 0;
+    if pid == 0 {
+        sleepy();
     }
-    println!("Test sleep OK!");
+    assert!(waitpid(pid as usize, &mut exit_code) == pid && exit_code == 0);
+    println!("use {} msecs.", get_time() - current_time);
+    println!("sleep pass.");
     0
 }

@@ -4,20 +4,13 @@
 #[macro_use]
 extern crate user_lib;
 
-use user_lib::{
-    fork,
-    wait,
-    exec,
-    yield_,
-};
+use user_lib::{exec, fork, wait, yield_};
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 fn main() -> i32 {
-    // 如果是子进程，执行 user_shell
     if fork() == 0 {
         exec("user_shell\0");
     } else {
-        // initproc 一直在轮询，回收移交给它的子进程
         loop {
             let mut exit_code: i32 = 0;
             let pid = wait(&mut exit_code);
@@ -27,8 +20,7 @@ fn main() -> i32 {
             }
             println!(
                 "[initproc] Released a zombie process, pid={}, exit_code={}",
-                pid,
-                exit_code,
+                pid, exit_code,
             );
         }
     }
