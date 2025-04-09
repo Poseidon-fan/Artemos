@@ -49,6 +49,7 @@ fn work(times: isize) {
 pub fn main() -> i32 {
     for _ in 0..NUM {
         let pid = fork();
+        println!("pid {} from process exit.", pid);
         if pid == 0 {
             let current_time = get_time();
             let times = (current_time as i32 as isize) * (current_time as i32 as isize) % 1000;

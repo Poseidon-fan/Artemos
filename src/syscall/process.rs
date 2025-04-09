@@ -1,7 +1,9 @@
 //! App management syscalls
 
 use alloc::sync::Arc;
-use crate::task::{exit_current_and_run_next, suspend_current_and_run_next};
+use crate::loader::get_app_data_by_name;
+use crate::mm::{translated_refmut, translated_str};
+use crate::task::{add_task, current_task, current_user_token, exit_current_and_run_next, suspend_current_and_run_next};
 use crate::timer::{get_time_ms};
 
 /// task exits and submit an exit code
@@ -20,6 +22,10 @@ pub fn sys_yield() -> isize {
 // 获取当前时间
 pub fn sys_get_time() -> isize {
     get_time_ms() as isize
+}
+
+pub fn sys_getpid() -> isize {
+    current_task().unwrap().pid.0 as isize
 }
 
 pub fn sys_fork() -> isize {

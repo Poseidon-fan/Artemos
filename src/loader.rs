@@ -27,7 +27,7 @@ lazy_static! {
 		// 创建一个包含所有应用名的 Vec
     static ref APP_NAMES: Vec<&'static str> = {
         let num_app = get_num_app();
-        extern "C" { fn _app_names(); }
+        unsafe extern "C" { fn _app_names(); }
         let mut start = _app_names as usize as *const u8;
         let mut v = Vec::new();
         unsafe {

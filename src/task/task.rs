@@ -84,16 +84,6 @@ impl TaskControlBlock {
         task_control_block
     }
 
-    // 获得在用户空间的 Trap 上下文的可变引用
-    pub fn get_trap_cx(&self) -> &'static mut TrapContext {
-        self.trap_cx_ppn.get_mut()
-    }
-
-    // 获得用户地址空间对应的 token
-    pub fn get_user_token(&self) -> usize {
-        self.memory_set.token()
-    }
-
     pub fn fork(self: &Arc<TaskControlBlock>) -> Arc<TaskControlBlock> {
         // 获取父亲的任务控制块 inner
         let mut parent_inner = self.inner_exclusive_access();
@@ -135,6 +125,7 @@ impl TaskControlBlock {
         // **** access children PCB exclusively
         let trap_cx = task_control_block.inner_exclusive_access().get_trap_cx();
         trap_cx.kernel_sp = kernel_stack_top;
+        // println!("kernel stack top: {}", kernel_stack_top);
         // return
         task_control_block
         // ---- stop exclusively accessing parent/children PCB automatically
@@ -167,6 +158,10 @@ impl TaskControlBlock {
             trap_handler as usize,
         );
         // **** stop exclusively accessing inner automatically
+    }
+
+    pub fn getpid(&self) -> usize {
+        self.pid.0
     }
 }
 
