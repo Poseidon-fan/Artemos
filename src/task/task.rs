@@ -1,12 +1,12 @@
-use alloc::rc::Weak;
-use alloc::sync::Arc;
-use alloc::vec::Vec;
-use crate::config::{kernel_stack_position, TRAP_CONTEXT};
-use crate::mm::{MapPermission, MemorySet, PhysPageNum, KERNEL_SPACE, VirtAddr};
+use super::TaskContext;
+use crate::config::TRAP_CONTEXT;
+use crate::mm::{KERNEL_SPACE, MemorySet, PhysPageNum, VirtAddr};
 use crate::sync::UPSafeCell;
-use crate::task::context::TaskContext;
+use crate::trap::{TrapContext, trap_handler};
+use alloc::sync::{Arc, Weak};
+use alloc::vec::Vec;
+use core::cell::RefMut;
 use crate::task::pid::{KernelStack, PidHandle};
-use crate::trap::{trap_handler, TrapContext};
 
 #[derive(Copy, Clone, PartialEq)]
 pub enum TaskStatus {
@@ -14,6 +14,7 @@ pub enum TaskStatus {
     Ready, // 准备运行
     Running, // 正在运行
     Exited, // 已退出
+    Zombie, // 待回收
 }
 
 pub struct TaskControlBlock {
@@ -37,6 +38,9 @@ pub struct TaskControlBlockInner {
 }
 
 impl TaskControlBlock {
+    pub fn inner_exclusive_access(&self) -> RefMut<'_, TaskControlBlockInner> {
+        self.inner.exclusive_access()
+    }
     pub fn new(elf_data: &[u8], app_id: usize) -> Self {
         // 从 ELF 里获取应用地址空间、用户栈地址、程序入口点
         let (memory_set, user_sp, entry_point) = MemorySet::from_elf(elf_data);
@@ -87,5 +91,20 @@ impl TaskControlBlock {
     // 获得用户地址空间对应的 token
     pub fn get_user_token(&self) -> usize {
         self.memory_set.token()
+    }
+}
+
+impl TaskControlBlockInner {
+    pub fn get_trap_cx(&self) -> &'static mut TrapContext {
+        self.trap_cx_ppn.get_mut()
+    }
+    pub fn get_user_token(&self) -> usize {
+        self.memory_set.token()
+    }
+    fn get_status(&self) -> TaskStatus {
+        self.task_status
+    }
+    pub fn is_zombie(&self) -> bool {
+        self.get_status() == TaskStatus::Zombie
     }
 }

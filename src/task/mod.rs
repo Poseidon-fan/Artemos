@@ -12,6 +12,8 @@ mod task;
 mod context;
 mod switch;
 mod pid;
+mod processor;
+mod manager;
 
 pub struct TaskManager {
     num_app: usize,
