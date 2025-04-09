@@ -9,6 +9,7 @@ use user_lib::{exec, fork, wait, yield_};
 #[unsafe(no_mangle)]
 fn main() -> i32 {
     println!("hello init");
+    println!("hello moca");
     if fork() == 0 {
         exec("user_shell\0");
     } else {
