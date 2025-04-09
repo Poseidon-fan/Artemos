@@ -93,6 +93,81 @@ impl TaskControlBlock {
     pub fn get_user_token(&self) -> usize {
         self.memory_set.token()
     }
+
+    pub fn fork(self: &Arc<TaskControlBlock>) -> Arc<TaskControlBlock> {
+        // 获取父亲的任务控制块 inner
+        let mut parent_inner = self.inner_exclusive_access();
+        // 复制父进程的地址空间
+        let memory_set = MemorySet::from_existed_user(
+            &parent_inner.memory_set
+        );
+        // 获取子进程 Trap 上下文所在物理页
+        let trap_cx_ppn = memory_set
+            .translate(VirtAddr::from(TRAP_CONTEXT).into())
+            .unwrap()
+            .ppn();
+        // 分配一个 pid
+        let pid_handle = pid_alloc();
+        // 获取内核栈
+        let kernel_stack = KernelStack::new(&pid_handle);
+        // 获取内核栈顶
+        let kernel_stack_top = kernel_stack.get_top();
+        // 创建子进程任务控制块
+        let task_control_block = Arc::new(TaskControlBlock {
+            pid: pid_handle,
+            kernel_stack,
+            inner: unsafe { UPSafeCell::new(TaskControlBlockInner {
+                trap_cx_ppn,
+                base_size: parent_inner.base_size,
+                // 压入一个任务上下文
+                task_cx: TaskContext::goto_trap_return(kernel_stack_top),
+                task_status: TaskStatus::Ready,
+                memory_set,
+                // 维护父进程
+                parent: Some(Arc::downgrade(self)),
+                children: Vec::new(),
+                exit_code: 0,
+            })},
+        });
+        // 为父进程添加孩子
+        parent_inner.children.push(task_control_block.clone());
+        // modify kernel_sp in trap_cx
+        // **** access children PCB exclusively
+        let trap_cx = task_control_block.inner_exclusive_access().get_trap_cx();
+        trap_cx.kernel_sp = kernel_stack_top;
+        // return
+        task_control_block
+        // ---- stop exclusively accessing parent/children PCB automatically
+    }
+
+    pub fn exec(&self, elf_data: &[u8]) {
+        // 从 ELF 解析出地址空间、用户栈、程序入口点
+        let (memory_set, user_sp, entry_point) = MemorySet::from_elf(elf_data);
+        // 获取 Trap 上下文所在的物理页
+        let trap_cx_ppn = memory_set
+            .translate(VirtAddr::from(TRAP_CONTEXT).into())
+            .unwrap()
+            .ppn();
+
+        // **** access inner exclusively
+        let mut inner = self.inner_exclusive_access();
+        // 修改地址空间
+        inner.memory_set = memory_set;
+        // update trap_cx ppn
+        inner.trap_cx_ppn = trap_cx_ppn;
+        // initialize trap_cx
+        let trap_cx = inner.get_trap_cx();
+        // 写 Trap 上下文
+        *trap_cx = TrapContext::app_init_context(
+            // 程序入口点
+            entry_point,
+            user_sp,
+            KERNEL_SPACE.exclusive_access().token(),
+            self.kernel_stack.get_top(),
+            trap_handler as usize,
+        );
+        // **** stop exclusively accessing inner automatically
+    }
 }
 
 impl TaskControlBlockInner {

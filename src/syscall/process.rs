@@ -1,4 +1,6 @@
 //! App management syscalls
+
+use alloc::sync::Arc;
 use crate::task::{exit_current_and_run_next, suspend_current_and_run_next};
 use crate::timer::{get_time_ms};
 
@@ -6,7 +8,7 @@ use crate::timer::{get_time_ms};
 pub fn sys_exit(exit_code: i32) -> ! {
     println!("[kernel] Application exited with code {}", exit_code);
     // 这里进行了修改，因为内核现在不能自己继续加载下一个程序了
-    exit_current_and_run_next();
+    exit_current_and_run_next(exit_code);
     panic!("Unreachable in sys_exit!");
 }
 
@@ -39,6 +41,7 @@ pub fn sys_exec(path: *const u8) -> isize {
     let path = translated_str(token, path);
     if let Some(data) = get_app_data_by_name(path.as_str()) {
         let task = current_task().unwrap();
+        // 找到了的话就调用 exec
         task.exec(data);
         0
     } else {
@@ -54,6 +57,8 @@ pub fn sys_waitpid(pid: isize, exit_code_ptr: *mut i32) -> isize {
 
     // ---- access current TCB exclusively
     let mut inner = task.inner_exclusive_access();
+
+    // 如果当前的进程不存在一个进程 ID 为 pid（pid==-1 或 pid > 0）的子进程，则返回 -1
     if !inner
         .children
         .iter()
@@ -67,7 +72,9 @@ pub fn sys_waitpid(pid: isize, exit_code_ptr: *mut i32) -> isize {
         p.inner_exclusive_access().is_zombie() && (pid == -1 || pid as usize == p.getpid())
         // ++++ release child PCB
     });
+    // 如果存在一个进程 ID 为 pid 的僵尸子进程，则正常回收并返回子进程的 pid，并更新系统调用的退出码参数为 exit_code
     if let Some((idx, _)) = pair {
+        // 将子进程从向量中移除并置于当前上下文中
         let child = inner.children.remove(idx);
         // confirm that child will be deallocated after removing from children list
         assert_eq!(Arc::strong_count(&child), 1);
@@ -78,6 +85,7 @@ pub fn sys_waitpid(pid: isize, exit_code_ptr: *mut i32) -> isize {
         *translated_refmut(inner.memory_set.token(), exit_code_ptr) = exit_code;
         found_pid as isize
     } else {
+        // 子进程还没退出
         -2
     }
     // ---- release current PCB lock automatically
