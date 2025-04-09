@@ -1,6 +1,11 @@
+use alloc::rc::Weak;
+use alloc::sync::Arc;
+use alloc::vec::Vec;
 use crate::config::{kernel_stack_position, TRAP_CONTEXT};
 use crate::mm::{MapPermission, MemorySet, PhysPageNum, KERNEL_SPACE, VirtAddr};
+use crate::sync::UPSafeCell;
 use crate::task::context::TaskContext;
+use crate::task::pid::{KernelStack, PidHandle};
 use crate::trap::{trap_handler, TrapContext};
 
 #[derive(Copy, Clone, PartialEq)]
@@ -12,14 +17,23 @@ pub enum TaskStatus {
 }
 
 pub struct TaskControlBlock {
+    // immutable
+    pub pid: PidHandle,
+    pub kernel_stack: KernelStack,
+    // mutable
+    inner: UPSafeCell<TaskControlBlockInner>,
+}
+
+pub struct TaskControlBlockInner {
+    pub trap_cx_ppn: PhysPageNum,
+    #[allow(unused)]
+    pub base_size: usize,
     pub task_cx: TaskContext,
     pub task_status: TaskStatus,
-    // 应用程序的地址空间
     pub memory_set: MemorySet,
-    // TrapContext 所在的物理页
-    pub trap_cx_ppn: PhysPageNum,
-    // 应用数据的大小
-    pub base_size: usize,
+    pub parent: Option<Weak<TaskControlBlock>>,
+    pub children: Vec<Arc<TaskControlBlock>>,
+    pub exit_code: i32,
 }
 
 impl TaskControlBlock {
