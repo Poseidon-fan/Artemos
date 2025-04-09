@@ -6,7 +6,7 @@ use crate::trap::{TrapContext, trap_handler};
 use alloc::sync::{Arc, Weak};
 use alloc::vec::Vec;
 use core::cell::RefMut;
-use crate::task::pid::{KernelStack, PidHandle};
+use crate::task::pid::{pid_alloc, KernelStack, PidHandle};
 
 #[derive(Copy, Clone, PartialEq)]
 pub enum TaskStatus {
@@ -41,38 +41,39 @@ impl TaskControlBlock {
     pub fn inner_exclusive_access(&self) -> RefMut<'_, TaskControlBlockInner> {
         self.inner.exclusive_access()
     }
-    pub fn new(elf_data: &[u8], app_id: usize) -> Self {
-        // 从 ELF 里获取应用地址空间、用户栈地址、程序入口点
+
+    // 以前还要传入一个 app_id，现在直接在函数里动态申请一个 pid 即可
+    pub fn new(elf_data: &[u8]) -> Self {
+        // 从 elf 中解析出应用地址空间、用户栈和程序入口点
         let (memory_set, user_sp, entry_point) = MemorySet::from_elf(elf_data);
-        // 找到 trap 上下文被实际放在哪一页帧（内核用了用户的地址空间）
+        // 获得 Trap 上下文所在的物理页
         let trap_cx_ppn = memory_set
             .translate(VirtAddr::from(TRAP_CONTEXT).into())
             .unwrap()
             .ppn();
-        let task_status = TaskStatus::Ready;
-        // 找到该应用的内核栈应该被放到内核地址空间的哪里
-        let (kernel_stack_bottom, kernel_stack_top) = kernel_stack_position(app_id);
-        // 将该应用的内核栈逻辑段插入地址空间
-        KERNEL_SPACE
-            .exclusive_access()
-            .insert_framed_area(
-                kernel_stack_bottom.into(),
-                kernel_stack_top.into(),
-                MapPermission::R | MapPermission::W,
-            );
-        // 创建任务控制块实例
+        // 申请一个 pid
+        let pid_handle = pid_alloc();
+        // 获得内核栈
+        let kernel_stack = KernelStack::new(&pid_handle);
+        // 获取内核栈顶的地址
+        let kernel_stack_top = kernel_stack.get_top();
+        // 创建一个任务控制块，任务上下文是去 goto_trap_return 的
         let task_control_block = Self {
-            task_status,
-            // 在应用的内核栈顶压入一个跳转到 trap_return 的任务上下文
-            task_cx: TaskContext::goto_trap_return(kernel_stack_top),
-            memory_set,
-            trap_cx_ppn,
-            base_size: user_sp,
+            pid: pid_handle,
+            kernel_stack,
+            inner: unsafe { UPSafeCell::new(TaskControlBlockInner {
+                trap_cx_ppn,
+                base_size: user_sp,
+                task_cx: TaskContext::goto_trap_return(kernel_stack_top),
+                task_status: TaskStatus::Ready,
+                memory_set,
+                parent: None,
+                children: Vec::new(),
+                exit_code: 0,
+            })},
         };
-        // 查找该应用的 Trap 上下文的内核虚地址，其实相当于这个上下文的真实物理地址
-        // 这里就体现了内核地址空间的第五个逻辑段为啥要恒等映射
-        // 同时在这里我们加入了 TrapContext 的三个新字段
-        let trap_cx = task_control_block.get_trap_cx();
+        // 往对应地址里写 Trap 上下文
+        let trap_cx = task_control_block.inner_exclusive_access().get_trap_cx();
         *trap_cx = TrapContext::app_init_context(
             entry_point,
             user_sp,
