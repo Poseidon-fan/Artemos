@@ -77,13 +77,18 @@ pub fn wait(exit_code: &mut i32) -> isize {
     }
 }
 
+/// 返回值：
+/// 
+/// 要么返回进程id，要么返回-1。如果要回收的进程还没执行完毕，则会让出cpu
 pub fn waitpid(pid: usize, exit_code: &mut i32) -> isize {
     loop {
         match sys_waitpid(pid as isize, exit_code as *mut _) {
+            // 要等待的子进程均未结束，则让出cpu
             -2 => {
                 yield_();
             }
-            // -1 or a real pid
+            // 要等待的子进程不存在，则返回-1
+            // 或者成功回收，则返回进程id
             exit_pid => return exit_pid,
         }
     }
