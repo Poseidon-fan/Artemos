@@ -59,14 +59,22 @@ pub fn getpid() -> isize {
     sys_getpid()
 }
 
+/// 对于子进程返回 0，对于当前进程则返回子进程的 PID
 pub fn fork() -> isize {
     sys_fork()
 }
 pub fn exec(path: &str) -> isize {
     sys_exec(path)
 }
+
+/// 返回值：
+/// 
+/// 要么返回进程id，要么返回-1。如果要回收的进程还没执行完毕，则会让出cpu
+/// 
+/// 与`waitpid`函数不同的是，`waitpid`函数**可以指定pid**，而`wait`函数只能等待任意的子进程回收
 pub fn wait(exit_code: &mut i32) -> isize {
     loop {
+        // 参数`pid==-1`表示等待任意一个子进程
         match sys_waitpid(-1, exit_code as *mut _) {
             -2 => {
                 yield_();
@@ -80,6 +88,8 @@ pub fn wait(exit_code: &mut i32) -> isize {
 /// 返回值：
 /// 
 /// 要么返回进程id，要么返回-1。如果要回收的进程还没执行完毕，则会让出cpu
+/// 
+/// 与`wait`函数不同的是，`waitpid`函数**可以指定pid**，而`wait`函数因参数`pid==-1`只能等待任意的子进程回收
 pub fn waitpid(pid: usize, exit_code: &mut i32) -> isize {
     loop {
         match sys_waitpid(pid as isize, exit_code as *mut _) {

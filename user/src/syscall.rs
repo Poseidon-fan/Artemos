@@ -52,6 +52,11 @@ pub fn sys_getpid() -> isize {
     syscall(SYSCALL_GETPID, [0, 0, 0])
 }
 
+/// 功能：当前进程 fork 出来一个子进程。
+/// 
+/// 返回值：对于子进程返回 0，对于当前进程则返回子进程的 PID 。
+/// 
+/// syscall ID：220
 pub fn sys_fork() -> isize {
     syscall(SYSCALL_FORK, [0, 0, 0])
 }

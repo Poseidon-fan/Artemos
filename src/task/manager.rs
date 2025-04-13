@@ -5,6 +5,9 @@ use crate::sync::UPSafeCell;
 use crate::task::task::TaskControlBlock;
 
 pub struct TaskManager {
+    /* 关于这里为什么要用Arc，而不是Box或者裸引用
+    因为除了TaskManager来管理TaskControlBlock之外，还有真正**使用**它的东西，
+    比如其父进程、其子进程等 */
     ready_queue: VecDeque<Arc<TaskControlBlock>>,
 }
 
