@@ -13,17 +13,20 @@
                 "gdb-remote localhost:1234"
             ],
             "initCommands": [ // 根据是否需要对 main 前的 asm debug 决定
-                "process handle SIGTRAP -s true"
+                "process handle SIGTRAP -s false"
             ],
             "name": "lldb launch",
             "program": "${workspaceFolder}/target/riscv64gc-unknown-none-elf/release/Artemos"
         },
+        //! 未测试，而且效果据说也没有lldb好
+        //! [How to debug in vscode? #1206](https://github.com/phil-opp/blog_os/issues/1206#issuecomment-1563423248)
         {
             "name": "Rust GDB Remote Debug",
             "type": "cppdbg",
             "request": "launch",
             "preLaunchTask": "Debug QEMU",
-            "program": "${workspaceFolder}/target/riscv64gc-unknown-none-elf/release/Artemos""args": [],
+            "program": "${workspaceFolder}/target/riscv64gc-unknown-none-elf/release/Artemos",
+            "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -42,7 +45,7 @@
                 },
             ],
             // RISC-V工具链中的gdb
-            "miDebuggerPath": "riscv64-elf-gdb",
+            "miDebuggerPath": "riscv64-unknown-elf-gdb",
             // gdb server 的地址端口
             "miDebuggerServerAddress": "localhost:1234"
         },
