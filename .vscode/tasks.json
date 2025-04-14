@@ -2,7 +2,7 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Build user apps",
+            "label": "Build user app",
             "type": "shell",
             "command": "make",
             "args": [
