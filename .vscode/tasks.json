@@ -60,6 +60,7 @@
                 "Build user app",
                 "Build OS"
             ],
+            "dependsOrder": "sequence",
             "group": {
                 "kind": "build",
                 "isDefault": true
@@ -85,6 +86,7 @@
                 "Build user app",
                 "Build OS"
             ],
+            "dependsOrder": "sequence",
             "group": {
                 "kind": "build",
                 "isDefault": true
