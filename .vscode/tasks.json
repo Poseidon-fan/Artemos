@@ -2,17 +2,28 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Build",
+            "label": "Build user app",
+            "type": "shell",
+            "command": "make",
+            "args": [
+                "build"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/user"
+            },
+            "problemMatcher": [
+                "$rustc",
+                "$gcc",
+            ]
+        },
+        {
+            "label": "Build OS",
             "type": "shell",
             "command": "cargo",
             "args": [
                 "build",
                 "--release"
             ],
-            // "group": {
-            //     "kind": "build",
-            //     "isDefault": true
-            // },
             "problemMatcher": [
                 "$rustc"
             ]
@@ -43,15 +54,44 @@
                 "-bios",
                 "bootloader/rustsbi-qemu.bin",
                 "-device",
-                "loader,file=target/riscv64gc-unknown-none-elf/release/os.bin,addr=0x80200000"
+                "loader,file=target/riscv64gc-unknown-none-elf/release/Artemos"
             ],
             "dependsOn": [
-                "Convert Binary"
+                "Build user app",
+                "Build OS"
             ],
+            "dependsOrder": "sequence",
             "group": {
                 "kind": "build",
                 "isDefault": true
-            }
+            },
+            "isBackground": false
+        },
+        {
+            "label": "Debug QEMU",
+            "type": "shell",
+            "command": "qemu-system-riscv64",
+            "args": [
+                "-machine",
+                "virt",
+                "-nographic",
+                "-bios",
+                "bootloader/rustsbi-qemu.bin",
+                "-device",
+                "loader,file=target/riscv64gc-unknown-none-elf/release/Artemos",
+                "-s", // shorthand for -gdb tcp::1234
+                "-S" // freeze CPU at startup (use 'c' to start execution)
+            ],
+            "dependsOn": [
+                "Build user app",
+                "Build OS"
+            ],
+            "dependsOrder": "sequence",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "isBackground": true
         }
     ]
 }

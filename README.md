@@ -13,5 +13,18 @@ qemu-system-riscv64 -machine virt \
     -bios bootloader/rustsbi-qemu.bin \
     -device loader,file=target/riscv64gc-unknown-none-elf/release/Artemos
 ```
+3. run qemu in debug mode (start tcp:1234)
+```bash
+cd user
+make build
+cd ..
+cargo build --release
+qemu-system-riscv64 -machine virt \
+    -nographic \
+    -bios bootloader/rustsbi-qemu.bin \
+    -device loader,file=target/riscv64gc-unknown-none-elf/release/Artemos \
+    -s \
+    -S
+```
 
 If you want to exit the QEMU emulator, first press Ctrl+A, then press X
