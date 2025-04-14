@@ -12,6 +12,15 @@ pub struct Processor {
     因为除了TaskManager来管理TaskControlBlock之外，还有真正**使用**它的东西，
     比如其父进程、其子进程等 */
     current: Option<Arc<TaskControlBlock>>,
+    /// 空闲任务（idle task）是操作系统中 CPU 没有其他任务可运行时的“占位”状态。
+    /// 它不是真正的用户任务，而是内核的特殊状态，用于避免 CPU 空转。
+    /// 
+    /// 可以举例追溯 sys_yield 的实现，发现它调用 suspend_current_and_run_next，后者调用 schedule。
+    /// 即：进程的内核栈主动请求了将自己换出，换成新的进程。
+    /// 
+    /// 因此，使用一个空上下文作为占位，内核的自己的调度流就不需要关心现在是谁在运行，只要换成下一个就绪任务就行，完成了解耦。
+    /// 
+    /// 其值：始终为全0（zero_init）
     idle_task_cx: TaskContext,
 }
 
@@ -19,11 +28,12 @@ lazy_static! {
     pub static ref PROCESSOR: UPSafeCell<Processor> = unsafe { UPSafeCell::new(Processor::new()) };
 }
 
+//? 这些个pub是不是也不需要
 impl Processor {
     pub fn new() -> Self {
         Self {
             current: None,
-            idle_task_cx: TaskContext::zero_init(),
+            idle_task_cx: TaskContext::zero_init(), // 全0
         }
     }
 
