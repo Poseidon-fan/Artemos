@@ -20,6 +20,13 @@ pub fn shutdown(failure: bool) -> ! {
     unreachable!()
 }
 
+// 重新启动，但是不关闭电源
+pub fn reboot() -> ! {
+    use sbi_rt::{system_reset, WarmReboot, NoReason};
+    system_reset(WarmReboot, NoReason);
+    unreachable!()
+}
+
 // 用来设置 mtimecmp 的值
 pub fn set_timer(timer: usize) {
     sbi_rt::set_timer(timer as _);

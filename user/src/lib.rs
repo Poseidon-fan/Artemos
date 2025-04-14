@@ -11,6 +11,12 @@ use core::ptr::addr_of_mut;
 use buddy_system_allocator::LockedHeap;
 
 const USER_HEAP_SIZE: usize = 16384;
+pub const LINUX_REBOOT_MAGIC1: usize = 0xfee1dead;
+pub const LINUX_REBOOT_MAGIC2: usize = 672274793;
+pub const LINUX_REBOOT_CMD_RESTART: usize = 0x01234567;
+pub const LINUX_REBOOT_CMD_HALT: usize = 0xcdef0123;
+pub const LINUX_REBOOT_CMD_POWER_OFF: usize = 0x4321fedc;
+
 
 static mut HEAP_SPACE: [u8; USER_HEAP_SIZE] = [0; USER_HEAP_SIZE];
 
@@ -94,4 +100,16 @@ pub fn sleep(period_ms: usize) {
     while sys_get_time() < start + period_ms as isize {
         sys_yield();
     }
+}
+
+pub fn reboot(magic1: usize, magic2: usize, cmd: usize) {
+    if magic1 == LINUX_REBOOT_MAGIC1
+        && magic2 == LINUX_REBOOT_MAGIC2
+        && (cmd == LINUX_REBOOT_CMD_RESTART || cmd == LINUX_REBOOT_CMD_HALT)
+    {
+        sys_reboot(cmd);
+    } else {
+        panic!("Invalid reboot magic numbers or command");
+    }
+
 }

@@ -6,6 +6,9 @@ use crate::mm::{translated_refmut, translated_str};
 use crate::task::{add_task, current_task, current_user_token, exit_current_and_run_next, suspend_current_and_run_next};
 use crate::timer::{get_time_ms};
 
+const LINUX_REBOOT_CMD_RESTART: usize = 0x01234567;
+const LINUX_REBOOT_CMD_HALT: usize = 0xcdef0123;
+
 /// task exits and submit an exit code
 pub fn sys_exit(exit_code: i32) -> ! {
     println!("[kernel] Application exited with code {}", exit_code);
@@ -16,6 +19,32 @@ pub fn sys_exit(exit_code: i32) -> ! {
 
 pub fn sys_yield() -> isize {
     suspend_current_and_run_next();
+    0
+}
+
+pub fn sys_reboot(cmd: usize) -> isize {
+    if(cmd == LINUX_REBOOT_CMD_HALT) {
+        println!("   ____                       _     _                            __  __                        ");
+        println!("  / ___|   ___     ___     __| |   | |__    _   _    ___        |  \\/  |   ___     ___    __ _ ");
+        println!(" | |  _   / _ \\   / _ \\   / _` |   | '_ \\  | | | |  / _ \\       | |\\/| |  / _ \\   / __|  / _` |");
+        println!(" | |_| | | (_) | | (_) | | (_| |   | |_) | | |_| | |  __/  _    | |  | | | (_) | | (__  | (_| |");
+        println!("  \\____|  \\___/   \\___/   \\__,_|   |_.__/   \\__, |  \\___| ( )   |_|  |_|  \\___/   \\___|  \\__,_|");
+        println!("                                            |___/         |/                                   ");
+        sbi::shutdown(true);
+        panic!("shutdown failed!");
+    } else if (cmd == LINUX_REBOOT_CMD_RESTART) {
+        println!("  ____                                                    _       _     _                    ");
+        println!(" / ___|    ___    ___     _   _     _ __     ___  __  __ | |_    | |_  (_)  _ __ ___     ___ ");
+        println!(" \\___ \\   / _ \\  / _ \\   | | | |   | '_ \\   / _ \\ \\ \\/ / | __|   | __| | | | '_ ` _ \\   / _ \\");
+        println!("  ___) | |  __/ |  __/   | |_| |   | | | | |  __/  >  <  | |_    | |_  | | | | | | | | |  __/");
+        println!(" |____/   \\___|  \\___|    \\__,_|   |_| |_|  \\___| /_/\\_\\  \\__|    \\__| |_| |_| |_| |_|  \\___|");
+        sbi::reboot();
+        panic!("reboot failed!");
+    }
+    else {
+        println!("[kernel] Invalid reboot command");
+        return -1;
+    }
     0
 }
 
