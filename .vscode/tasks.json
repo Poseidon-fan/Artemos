@@ -13,7 +13,6 @@
             },
             "problemMatcher": [
                 "$rustc",
-                "$gcc",
             ]
         },
         {

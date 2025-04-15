@@ -282,6 +282,7 @@ impl MemorySet {
 
     // 分析应用的 ELF 文件格式的内容，解析出各数据段并生成对应的地址空间
     // 是生成用户程序的地址空间时需要用的
+    /// 返回值：(应用程序地址空间, 用户栈地址, 从 ELF 里解析出的程序入口点)
     pub fn from_elf(elf_data: &[u8]) -> (Self, usize, usize) {
         let mut memory_set = Self::new_bare();
         // 将跳板插入到应用地址空间
