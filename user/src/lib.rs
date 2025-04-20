@@ -3,20 +3,23 @@
 #![feature(alloc_error_handler)]
 
 #[macro_use]
+extern crate bitflags;
+
+#[macro_use]
 pub mod console;
 mod lang_items;
 mod syscall;
 
-use core::ptr::addr_of_mut;
 use buddy_system_allocator::LockedHeap;
+use core::ptr::addr_of_mut;
+use syscall::*;
 
-const USER_HEAP_SIZE: usize = 16384;
+const USER_HEAP_SIZE: usize = 32768; //? 原先是16384，变大了
 pub const LINUX_REBOOT_MAGIC1: usize = 0xfee1dead;
 pub const LINUX_REBOOT_MAGIC2: usize = 672274793;
 pub const LINUX_REBOOT_CMD_RESTART: usize = 0x01234567;
 pub const LINUX_REBOOT_CMD_HALT: usize = 0xcdef0123;
 pub const LINUX_REBOOT_CMD_POWER_OFF: usize = 0x4321fedc;
-
 
 static mut HEAP_SPACE: [u8; USER_HEAP_SIZE] = [0; USER_HEAP_SIZE];
 
@@ -44,7 +47,15 @@ fn main() -> i32 {
     panic!("Cannot find main!");
 }
 
-use syscall::*;
+bitflags! {
+    pub struct OpenFlags: u32 {
+        const RDONLY = 0;
+        const WRONLY = 1 << 0;
+        const RDWR = 1 << 1;
+        const CREATE = 1 << 9;
+        const TRUNC = 1 << 10;
+    }
+}
 
 pub fn read(fd: usize, buf: &mut [u8]) -> isize {
     sys_read(fd, buf)
@@ -57,7 +68,9 @@ pub fn exit(exit_code: i32) -> ! {
 }
 
 // yield 是 Rust 的关键字，所以取名为 yield_
-pub fn yield_() -> isize { sys_yield() }
+pub fn yield_() -> isize {
+    sys_yield()
+}
 pub fn get_time() -> isize {
     sys_get_time()
 }
@@ -74,9 +87,9 @@ pub fn exec(path: &str) -> isize {
 }
 
 /// 返回值：
-/// 
+///
 /// 要么返回进程id，要么返回-1。如果要回收的进程还没执行完毕，则会让出cpu
-/// 
+///
 /// 与`waitpid`函数不同的是，`waitpid`函数**可以指定pid**，而`wait`函数只能等待任意的子进程回收
 pub fn wait(exit_code: &mut i32) -> isize {
     loop {
@@ -92,9 +105,9 @@ pub fn wait(exit_code: &mut i32) -> isize {
 }
 
 /// 返回值：
-/// 
+///
 /// 要么返回进程id，要么返回-1。如果要回收的进程还没执行完毕，则会让出cpu
-/// 
+///
 /// 与`wait`函数不同的是，`waitpid`函数**可以指定pid**，而`wait`函数因参数`pid==-1`只能等待任意的子进程回收
 pub fn waitpid(pid: usize, exit_code: &mut i32) -> isize {
     loop {
@@ -126,5 +139,18 @@ pub fn reboot(magic1: usize, magic2: usize, cmd: usize) {
     } else {
         panic!("Invalid reboot magic numbers or command");
     }
+}
 
+pub fn open(path: &str, flags: OpenFlags) -> isize {
+    sys_open(path, flags.bits)
+}
+
+
+/// 功能：当前进程关闭一个文件。
+/// 
+/// 参数：fd 表示要关闭的文件的文件描述符。
+/// 
+/// 返回值：如果成功关闭则返回 0 ，否则返回 -1 。可能的出错原因：传入的文件描述符并不对应一个打开的文件。
+pub fn close(fd: usize) -> isize { 
+    sys_close(fd)
 }

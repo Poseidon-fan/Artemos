@@ -1,5 +1,7 @@
 use core::arch::asm;
 
+const SYSCALL_OPEN: usize = 56;
+const SYSCALL_CLOSE: usize = 57;
 const SYSCALL_READ: usize = 63;
 const SYSCALL_WRITE: usize = 64;
 const SYSCALL_EXIT: usize = 93;
@@ -93,4 +95,23 @@ pub fn sys_waitpid(pid: isize, exit_code: *mut i32) -> isize {
 
 pub fn sys_reboot(cmd: usize) -> isize {
     syscall(SYSCALL_REBOOT, [cmd, 0, 0])
+}
+
+/// 功能：
+/// - 打开一个常规文件，并返回可以访问它的文件描述符。
+/// 
+/// 参数：
+/// - path 描述要打开的文件的文件名（简单起见，文件系统不需要支持目录，所有的文件都放在根目录 / 下），
+/// - flags 描述打开文件的标志，具体含义下面给出。
+/// 
+/// 返回值：
+/// - 如果出现了错误则返回 -1，否则返回打开常规文件的文件描述符。可能的错误原因是：文件不存在。
+/// 
+/// syscall ID：56
+pub fn sys_open(path: &str, flags: u32) -> isize {
+    syscall(SYSCALL_OPEN, [path.as_ptr() as usize, flags as usize, 0])
+}
+
+pub fn sys_close(fd: usize) -> isize {
+    syscall(SYSCALL_CLOSE, [fd, 0, 0])
 }
