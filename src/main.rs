@@ -25,6 +25,8 @@ mod task;
 mod timer;
 mod trap;
 mod mm;
+mod fs;
+mod drivers;
 
 // include_str! 宏的作用是将文件内容作为字符串常量嵌入到程序
 // global_asm! 宏的作用是将汇编代码嵌入到程序中

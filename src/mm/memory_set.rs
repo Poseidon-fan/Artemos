@@ -32,6 +32,11 @@ lazy_static! {
     )});
 }
 
+///Get kernelspace root ppn
+pub fn kernel_token() -> usize {
+    KERNEL_SPACE.exclusive_access().token()
+}
+
 #[derive(Copy, Clone, PartialEq, Debug)]
 /// map type for memory set: identical or framed
 pub enum MapType {

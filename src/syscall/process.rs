@@ -22,6 +22,7 @@ pub fn sys_yield() -> isize {
     0
 }
 
+/*
 pub fn sys_reboot(cmd: usize) -> isize {
     if(cmd == LINUX_REBOOT_CMD_HALT) {
         println!("   ____                       _     _                            __  __                        ");
@@ -46,7 +47,7 @@ pub fn sys_reboot(cmd: usize) -> isize {
         return -1;
     }
     0
-}
+} */
 
 // 获取当前时间
 pub fn sys_get_time() -> isize {

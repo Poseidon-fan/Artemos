@@ -1,7 +1,7 @@
-use core::fmt;
-use core::fmt::{Debug, Formatter};
 use crate::config::*;
 use crate::mm::page_table::PageTableEntry;
+use core::fmt;
+use core::fmt::{Debug, Formatter};
 
 #[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq)]
 pub struct PhysAddr(pub usize);
@@ -33,10 +33,14 @@ impl Debug for VirtPageNum {
 
 // usize 与地址、页号之间相互转换
 impl From<usize> for PhysAddr {
-    fn from(v: usize) -> Self { Self(v & ( (1 << PA_WIDTH_SV39) - 1 )) }
+    fn from(v: usize) -> Self {
+        Self(v & ((1 << PA_WIDTH_SV39) - 1))
+    }
 }
 impl From<usize> for PhysPageNum {
-    fn from(v: usize) -> Self { Self(v & ( (1 << PPN_WIDTH_SV39) - 1 )) }
+    fn from(v: usize) -> Self {
+        Self(v & ((1 << PPN_WIDTH_SV39) - 1))
+    }
 }
 impl From<usize> for VirtAddr {
     fn from(v: usize) -> Self {
@@ -120,7 +124,11 @@ impl PhysAddr {
     pub fn aligned(&self) -> bool {
         self.page_offset() == 0
     }
-
+    ///Get reference to `PhysAddr` value
+    pub fn get_ref<T>(&self) -> &'static T {
+        unsafe { (self.0 as *const T).as_ref().unwrap() }
+    }
+    ///Get mutable reference to `PhysAddr` value
     pub fn get_mut<T>(&self) -> &'static mut T {
         unsafe { (self.0 as *mut T).as_mut().unwrap() }
     }
@@ -150,7 +158,6 @@ impl VirtPageNum {
     }
 }
 
-
 // 不同的引用类型对应于物理页帧上不同的内存布局
 impl PhysPageNum {
     pub fn get_pte_array(&self) -> &'static mut [PageTableEntry] {
@@ -167,10 +174,17 @@ impl PhysPageNum {
     }
 }
 
+///Add value by one
 pub trait StepByOne {
+    ///Add value by one
     fn step(&mut self);
 }
 impl StepByOne for VirtPageNum {
+    fn step(&mut self) {
+        self.0 += 1;
+    }
+}
+impl StepByOne for PhysPageNum {
     fn step(&mut self) {
         self.0 += 1;
     }

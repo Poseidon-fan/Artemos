@@ -14,7 +14,6 @@ bitflags = "1.2.1"
 riscv = { git = "https://github.com/rcore-os/riscv", features = ["inline-asm"] }
 virtio-drivers = { git = "https://github.com/rcore-os/virtio-drivers", rev = "4ee80e5" }
 easy-fs = { path = "./easy-fs" }
-sbi-rt = { version = "0.0.2", features = ["legacy"] }
 
 [profile.release]
 debug = true
@@ -22,4 +21,5 @@ opt-level = 0           # 优化级别,最低是0,最高是3, 0方便debug （�
 overflow-checks = false # 关闭整数溢出检查，方便debug（最后可以删掉）
 
 [workspace]
-members = ["components/*", "user", "easy-fs", "easy-fs-fuse"]
+members = ["components/*", "user", "easy-fs"]
+exclude = ["easy-fs-fuse"]

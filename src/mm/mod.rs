@@ -3,10 +3,14 @@ mod address;
 mod page_table;
 mod frame_allocator;
 mod memory_set;
-pub use page_table::*;
-pub use memory_set::*;
-pub use address::*;
-
+pub use address::{PhysAddr, PhysPageNum, StepByOne, VirtAddr, VirtPageNum};
+pub use frame_allocator::{FrameTracker, frame_alloc, frame_dealloc};
+pub use memory_set::remap_test;
+pub use memory_set::{KERNEL_SPACE, MapPermission, MemorySet, kernel_token};
+pub use page_table::{
+    PageTable, PageTableEntry, UserBuffer, UserBufferIterator, translated_byte_buffer,
+    translated_ref, translated_refmut, translated_str,
+};
 pub fn heap_test() {
     heap_allocator::init_heap();
     heap_allocator::heap_test();
