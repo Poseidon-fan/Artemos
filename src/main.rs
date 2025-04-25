@@ -1,37 +1,57 @@
-#![no_main]
-// 不再使用 Rust 标准库 std，转而使用核心库 core
-// 核心库 core 可以直接在裸机上使用，但 std 不能，需要 OS 的支持
+//! The main module and entrypoint
+//!
+//! Various facilities of the kernels are implemented as submodules. The most
+//! important ones are:
+//!
+//! - [`trap`]: Handles all cases of switching from userspace to the kernel
+//! - [`task`]: Task management
+//! - [`syscall`]: System call handling and implementation
+//! - [`mm`]: Address map using SV39
+//! - [`sync`]: Wrap a static data structure inside it so that we are able to access it without any `unsafe`.
+//! - [`fs`]: Separate user from file system with some structures
+//!
+//! The operating system also starts in this module. Kernel code starts
+//! executing from `entry.asm`, after which [`rust_main()`] is called to
+//! initialize various pieces of functionality. (See its source code for
+//! details.)
+//!
+//! We then call [`task::run_tasks()`] and for the first time go to
+//! userspace.
+
+// #![deny(missing_docs)]
+// #![deny(warnings)]
+#![allow(unused_imports)]
 #![no_std]
+#![no_main]
 #![feature(alloc_error_handler)]
 
 extern crate alloc;
 
-use core::arch::global_asm;
-use log::info;
+#[macro_use]
+extern crate bitflags;
+
+use log::*;
 
 #[path = "boards/qemu.rs"]
 mod board;
 
-mod panic;
 #[macro_use]
-mod logging;
-#[macro_use]
-extern crate bitflags;
-mod sync;
-mod syscall;
-mod loader;
+mod console;
 mod config;
-mod task;
-mod timer;
-mod trap;
-mod mm;
-mod fs;
 mod drivers;
+pub mod fs;
+pub mod lang_items;
+mod logging;
+pub mod mm;
+pub mod sync;
+pub mod syscall;
+pub mod task;
+pub mod timer;
+pub mod trap;
 
-// include_str! 宏的作用是将文件内容作为字符串常量嵌入到程序
-// global_asm! 宏的作用是将汇编代码嵌入到程序中
+use core::arch::global_asm;
+
 global_asm!(include_str!("entry.S"));
-global_asm!(include_str!("link_app.S"));
 
 #[unsafe(no_mangle)]
 pub fn kernel_main() -> ! {
@@ -42,14 +62,12 @@ pub fn kernel_main() -> ! {
     info!("[kernel] back to world!");
     // 检查内核地址空间的多级页表是否被正确设置
     mm::remap_test();
-    // trap::init();
-    // trap::enable_interrupt();
-    task::add_initproc();
     println!("after initproc!");
-    // trap::init();
+    trap::init();
     trap::enable_timer_interrupt();
+    fs::list_apps();
     timer::set_next_trigger();
-    loader::list_apps();
+    task::add_initproc();
     task::run_tasks();
     panic!("Unreachable in rust_main!");
 }
@@ -59,7 +77,5 @@ fn clear_bss() {
         fn sbss();
         fn ebss();
     }
-    (sbss as usize..ebss as usize).for_each(|a| {
-        unsafe { (a as *mut u8).write_volatile(0) }
-    });
+    (sbss as usize..ebss as usize).for_each(|a| unsafe { (a as *mut u8).write_volatile(0) });
 }

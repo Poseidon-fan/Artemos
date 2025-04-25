@@ -15,5 +15,11 @@ pub trait File: Send + Sync {
     fn write(&self, buf: UserBuffer) -> usize;
 }
 
+#[cfg(feature = "board_qemu")]
+type BlockDeviceImpl = virtio_blk::VirtIOBlock;
+
+#[cfg(feature = "board_k210")]
+type BlockDeviceImpl = sdcard::SDCardWrapper;
+
 pub use inode::{OSInode, OpenFlags, list_apps, open_file};
 pub use stdio::{Stdin, Stdout};

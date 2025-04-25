@@ -23,3 +23,7 @@ overflow-checks = false # 关闭整数溢出检查，方便debug（最后可以�
 [workspace]
 members = ["components/*", "user", "easy-fs"]
 exclude = ["easy-fs-fuse"]
+
+[features]
+board_qemu = []
+board_k210 = []

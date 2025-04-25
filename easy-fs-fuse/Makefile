@@ -1,10 +1,9 @@
-build:
-	@if [ "$(OS)" = "Windows_NT" ]; then \
-        if command -v powershell >/dev/null; then \
-            powershell -Command "\$$env:RUSTFLAGS=\$$null; \$$env:CARGO_BUILD_TARGET=\$$null; cargo build --release"; \
-        else \
-            cmd /C "set RUSTFLAGS= && set CARGO_BUILD_TARGET= && cargo build --release"; \
-        fi; \
-    else \
-        RUSTFLAGS= CARGO_BUILD_TARGET= cargo build --release; \
-    fi
+.PHONY: run
+DEFAULT_TARGET := $(shell rustc -vV | grep host | cut -d' ' -f2)
+
+run:
+ifeq ($(OS),Windows_NT)
+	@set RUSTFLAGS= && cargo build --release
+else
+	@RUSTFLAGS="" CARGO_BUILD_TARGET="$(DEFAULT_TARGET)" cargo run --verbose --release -- -s ../user/src/bin/ -t ../target/riscv64gc-unknown-none-elf/release/
+endif

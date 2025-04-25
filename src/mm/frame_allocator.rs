@@ -126,13 +126,13 @@ impl Drop for FrameTracker {
 
 pub fn frame_allocator_test() {
     let mut v: Vec<FrameTracker> = Vec::new();
-    for i in 0..5 {
+    for _ in 0..5 {
         let frame = frame_alloc().unwrap();
         println!("{:?}", frame);
         v.push(frame);
     }
     v.clear();
-    for i in 0..5 {
+    for _ in 0..5 {
         let frame = frame_alloc().unwrap();
         println!("{:?}", frame);
         v.push(frame);

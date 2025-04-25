@@ -160,9 +160,11 @@ impl PageTable {
     }
 }
 
-// 参数：token：某个应用地址空间的 token
-// ptr 和 len 分别表示起始地址和长度
-// 以向量的形式返回一组可以在内核空间中直接访问的字节数组切片
+/// 参数：
+/// - token：某个应用地址空间的 token
+/// - ptr 和 len 分别表示起始地址和长度
+/// 
+/// 以向量的形式返回一组可以在内核空间中直接访问的字节数组切片
 pub fn translated_byte_buffer(
     token: usize,
     ptr: *const u8,

@@ -32,20 +32,6 @@ pub fn print(args: fmt::Arguments) {
     Stdout.write_fmt(args).unwrap();
 }
 
-#[macro_export]
-macro_rules! print {
-    ($fmt: literal $(, $($arg: tt)+)?) => {
-        $crate::logging::print(format_args!($fmt $(, $($arg)+)?));
-    }
-}
-
-#[macro_export]
-macro_rules! println {
-    ($fmt: literal $(, $($arg: tt)+)?) => {
-        $crate::logging::print(format_args!(concat!($fmt, "\n") $(, $($arg)+)?));
-    }
-}
-
 impl Log for Logger {
     fn enabled(&self, _metadata: &log::Metadata) -> bool {
         true

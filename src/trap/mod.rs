@@ -16,8 +16,12 @@ mod context;
 
 use crate::syscall::syscall;
 use core::arch::{asm, global_asm};
-use log::{error};
-use riscv::register::{mtvec::TrapMode, scause::{self, Exception, Interrupt, Trap}, sie, stval, stvec};
+use log::error;
+use riscv::register::{
+    mtvec::TrapMode,
+    scause::{self, Exception, Interrupt, Trap},
+    sie, stval, stvec,
+};
 
 global_asm!(include_str!("trap.S"));
 
@@ -66,12 +70,12 @@ pub fn trap_handler() -> ! {
             cx = current_trap_cx();
             cx.x[10] = result as usize;
         }
-        Trap::Exception(Exception::StoreFault) |
-        Trap::Exception(Exception::StorePageFault) |
-        Trap::Exception(Exception::InstructionFault) |
-        Trap::Exception(Exception::InstructionPageFault) |
-        Trap::Exception(Exception::LoadFault) |
-        Trap::Exception(Exception::LoadPageFault) => {
+        Trap::Exception(Exception::StoreFault)
+        | Trap::Exception(Exception::StorePageFault)
+        | Trap::Exception(Exception::InstructionFault)
+        | Trap::Exception(Exception::InstructionPageFault)
+        | Trap::Exception(Exception::LoadFault)
+        | Trap::Exception(Exception::LoadPageFault) => {
             println!(
                 "[kernel] {:?} in application, bad addr = {:#x}, bad instruction = {:#x}, core dumped.",
                 scause.cause(),
@@ -108,6 +112,7 @@ fn set_user_trap_entry() {
 }
 
 #[unsafe(no_mangle)]
+#[allow(unreachable_code)]
 pub fn trap_return() -> ! {
     // 设置回 Trap 处理的入口是跳板页面
     set_user_trap_entry();
@@ -133,7 +138,9 @@ pub fn trap_return() -> ! {
     panic!("Unreachable in back_to_user!");
 }
 
-pub use context::TrapContext;
 use crate::config::{TRAMPOLINE, TRAP_CONTEXT};
-use crate::task::{current_trap_cx, current_user_token, exit_current_and_run_next, suspend_current_and_run_next};
+use crate::task::{
+    current_trap_cx, current_user_token, exit_current_and_run_next, suspend_current_and_run_next,
+};
 use crate::timer::set_next_trigger;
+pub use context::TrapContext;

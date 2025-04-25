@@ -1,34 +1,32 @@
-use alloc::sync::Arc;
-use alloc::vec::Vec;
-use lazy_static::lazy_static;
-use sbi::shutdown;
-use crate::loader::{get_app_data, get_num_app};
+use crate::fs::{OpenFlags, open_file};
 use crate::sync::UPSafeCell;
 use crate::task::context::TaskContext;
 use crate::task::switch::__switch;
 use crate::task::task::{TaskControlBlock, TaskStatus};
 use crate::trap::TrapContext;
+use alloc::sync::Arc;
+use alloc::vec::Vec;
+use lazy_static::lazy_static;
+use sbi::shutdown;
 
-mod task;
 mod context;
-mod switch;
+mod manager;
 mod pid;
 mod processor;
-mod manager;
+mod switch;
+mod task;
 
-pub use processor::{
-    Processor, current_task, run_tasks, current_user_token, current_trap_cx
-};
 pub use manager::add_task;
+pub use processor::{Processor, current_task, current_trap_cx, current_user_token, run_tasks};
 
-
-use crate::loader::get_app_data_by_name;
 use crate::task::processor::{schedule, take_current_task};
 
 lazy_static! {
-    pub static ref INITPROC: Arc<TaskControlBlock> = Arc::new(TaskControlBlock::new(
-        get_app_data_by_name("initproc").unwrap()
-    ));
+    pub static ref INITPROC: Arc<TaskControlBlock> = Arc::new({
+        let inode = open_file("initproc", OpenFlags::RDONLY).unwrap();
+        let v = inode.read_all();
+        TaskControlBlock::new(v.as_slice())
+    });
 }
 
 pub fn add_initproc() {

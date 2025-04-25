@@ -1,13 +1,13 @@
 //! App management syscalls
 
-use alloc::sync::Arc;
-use crate::loader::get_app_data_by_name;
+use crate::fs::{OpenFlags, open_file};
 use crate::mm::{translated_refmut, translated_str};
-use crate::task::{add_task, current_task, current_user_token, exit_current_and_run_next, suspend_current_and_run_next};
-use crate::timer::{get_time_ms};
-
-const LINUX_REBOOT_CMD_RESTART: usize = 0x01234567;
-const LINUX_REBOOT_CMD_HALT: usize = 0xcdef0123;
+use crate::task::{
+    add_task, current_task, current_user_token, exit_current_and_run_next,
+    suspend_current_and_run_next,
+};
+use crate::timer::get_time_ms;
+use alloc::sync::Arc;
 
 /// task exits and submit an exit code
 pub fn sys_exit(exit_code: i32) -> ! {
@@ -75,10 +75,11 @@ pub fn sys_fork() -> isize {
 pub fn sys_exec(path: *const u8) -> isize {
     let token = current_user_token();
     let path = translated_str(token, path);
-    if let Some(data) = get_app_data_by_name(path.as_str()) {
+    //以只读的方式在内核中打开应用文件并获取它对应的 OSInode
+    if let Some(app_inode) = open_file(path.as_str(), OpenFlags::RDONLY) {
+        let all_data = app_inode.read_all();
         let task = current_task().unwrap();
-        // 找到了的话就调用 exec
-        task.exec(data);
+        task.exec(all_data.as_slice());
         0
     } else {
         -1
