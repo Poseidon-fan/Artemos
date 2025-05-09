@@ -8,8 +8,8 @@ QEMU_ARGS := -machine virt \
 			 -device virtio-blk-device,drive=x0,bus=virtio-mmio-bus.0
 
 build:
-	@cd ./easy-fs-fuse && make
 	@cd ./user && make
+	@cd ./easy-fs-fuse && make
 	@cargo build --release
 
 run: build

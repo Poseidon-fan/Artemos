@@ -3,4 +3,4 @@ target = "riscv64gc-unknown-none-elf"
 
 [target.riscv64gc-unknown-none-elf]
 linker = "rust-lld"
-rustflags = ["-Clink-arg=-Tsrc/linker.ld", "-Cforce-frame-pointers=yes"]
+rustflags = ["-Clink-arg=-Tsrc/linker-qemu.ld", "-Cforce-frame-pointers=yes"]
