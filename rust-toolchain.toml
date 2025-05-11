@@ -1,9 +1,0 @@
-[toolchain]
-profile = "minimal"
-channel = "nightly-2025-01-25"
-components = ["rust-src", "llvm-tools", "rustfmt", "clippy"]
-# CPU 架构是 riscv64gc
-# CPU 厂商是 unknown
-# 操作系统是 none
-# 没有标准的运行时库，但可以生成 ELF 格式的执行程序
-targets = ["riscv64gc-unknown-none-elf"]
