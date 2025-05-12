@@ -1,0 +1,29 @@
+# Configuration for rustfmt.
+# Some of the following configuration items are unstable and require the nightly version to be enabled.
+# See https://rust-lang.github.io/rustfmt
+
+edition = "2024"
+style_edition = "2024"
+unstable_features = true
+
+blank_lines_lower_bound = 1
+blank_lines_upper_bound = 2
+comment_width = 100
+format_code_in_doc_comments = true
+group_imports = "StdExternalCrate"
+imports_granularity = "Crate"
+match_block_trailing_comma = true
+max_width = 120
+newline_style = "Unix"
+normalize_comments = true
+reorder_impl_items = true
+use_try_shorthand = true
+wrap_comments = true
+
+
+
+
+
+
+
+
