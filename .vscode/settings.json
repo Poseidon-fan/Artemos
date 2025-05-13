@@ -1,0 +1,5 @@
+{
+    "rust-analyzer.check.allTargets": false,
+    "rust-analyzer.procMacro.enable": true,
+    "rust-analyzer.cargo.target": "riscv64gc-unknown-none-elf",
+}

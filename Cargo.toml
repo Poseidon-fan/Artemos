@@ -1,0 +1,16 @@
+[package]
+name = "Artemos"
+version = "0.1.0"
+edition = "2024"
+authors = [
+    "Xingkun Fan <18646154381@163.com>",
+    "Qixuan Wu <1043530132@qq.com>",
+    "Yucheng Liu <cheparity@gmail.com>"
+]
+
+[dependencies]
+
+[target.riscv64gc-unknown-none-elf.dependencies]
+
+
+[target.loongarch64-unknown-none.dependencies]
