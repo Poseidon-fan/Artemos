@@ -1,0 +1,22 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        // 需要安装codelldb插件
+        {
+            "type": "lldb",
+            "request": "launch",
+            "preLaunchTask": "debug",
+            "processCreateCommands": [
+                "gdb-remote localhost:1234"
+            ],
+            "initCommands": [ // 根据是否需要对 main 前的 asm debug 决定
+                "process handle SIGTRAP -s false"
+            ],
+            "name": "lldb launch",
+            "program": "${workspaceFolder}/target/riscv64gc-unknown-none-elf/release/Artemos"
+        },
+    ]
+}
