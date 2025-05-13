@@ -1,6 +1,7 @@
 #![no_std]
 #![no_main]
 
+mod logging;
 mod panic;
 
 #[cfg(target_arch = "riscv64")]

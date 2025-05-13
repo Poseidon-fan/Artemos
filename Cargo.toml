@@ -9,6 +9,7 @@ authors = [
 ]
 
 [dependencies]
+log = "0.4.27"
 
 [target.riscv64gc-unknown-none-elf.dependencies]
 

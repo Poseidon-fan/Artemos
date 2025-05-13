@@ -1,6 +1,7 @@
     .section .text.entry
     .globl _start
 _start:
+    slli x0, x0, 0
     la sp, boot_stack_top
     call kernel_main
 
