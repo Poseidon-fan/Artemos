@@ -1,6 +1,8 @@
 #![no_std]
 #![no_main]
 
+mod panic;
+
 #[cfg(target_arch = "riscv64")]
 #[path = "arch/riscv64/mod.rs"]
 mod arch;
