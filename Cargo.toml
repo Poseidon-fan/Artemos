@@ -10,8 +10,10 @@ authors = [
 
 [dependencies]
 log = "0.4.27"
+spin = "0.10.0"
 
 [target.riscv64gc-unknown-none-elf.dependencies]
+riscv = "0.13.0"
 
 
 [target.loongarch64-unknown-none.dependencies]
