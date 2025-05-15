@@ -12,8 +12,10 @@ authors = [
 log = "0.4.27"
 spin = "0.10.0"
 
-[target.riscv64gc-unknown-none-elf.dependencies]
+
+[target.'cfg(any(target_arch = "riscv64"))'.dependencies]
 riscv = "0.13.0"
+fdt = "0.1.5"
 
 
-[target.loongarch64-unknown-none.dependencies]
+[target.'cfg(any(target_arch = "loongarch64"))'.dependencies]
