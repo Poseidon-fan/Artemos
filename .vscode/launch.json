@@ -13,7 +13,7 @@
             ],
             "initCommands": [
                 // if need to debug entry.asm
-                "process handle SIGTRAP -s true"
+                "process handle SIGTRAP -s false"
             ],
             "name": "lldb launch",
             "program": "${workspaceFolder}/target/riscv64gc-unknown-none-elf/release/Artemos",
