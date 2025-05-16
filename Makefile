@@ -17,7 +17,7 @@ BOOTLOADER_PATH ?= ./bootloader/rustsbi-qemu.bin
 build-riscv:
 	@echo "Building riscv with: $(OS_FILE), mem: $(MEM), smp: $(SMP), fs: $(FS), disk: $(DISK_IMG_RV)"
 	@cargo build --release --target riscv64gc-unknown-none-elf -Z build-std=core,alloc
-	rust-objcopy --strip-all target/riscv64gc-unknown-none-elf/release/Artemos -O binary target/riscv64gc-unknown-none-elf/release/Artemos.bin
+	@rust-objcopy --strip-all target/riscv64gc-unknown-none-elf/release/Artemos -O binary target/riscv64gc-unknown-none-elf/release/Artemos.bin
 	@echo "Build finished."
 
 run-riscv: build-riscv
@@ -25,7 +25,8 @@ run-riscv: build-riscv
 		-machine virt \
 		-nographic \
 		-device loader,file=target/riscv64gc-unknown-none-elf/release/Artemos.bin,addr=0x80200000 \
-		-bios tools/opensbi.bin
+		-bios tools/opensbi.bin \
+		-smp $(SMP)
 	# @echo "Running RISC-V QEMU with kernel: $(OS_FILE), mem: $(MEM), smp: $(SMP), fs: $(FS), disk: $(DISK_IMG_RV)"
 	# qemu-system-riscv64 \
 	# 	-machine virt \
@@ -49,6 +50,7 @@ dbg-riscv: build-riscv
 		-nographic \
 		-device loader,file=target/riscv64gc-unknown-none-elf/release/Artemos.bin,addr=0x80200000 \
 		-bios tools/opensbi.bin \
+		-smp $(SMP) \
 		-s -S
 		# qemu-system-riscv64 \
 		# -machine virt \

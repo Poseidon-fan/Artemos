@@ -16,7 +16,8 @@
                 "process handle SIGTRAP -s true"
             ],
             "name": "lldb launch",
-            "program": "${workspaceFolder}/target/riscv64gc-unknown-none-elf/release/Artemos"
+            "program": "${workspaceFolder}/target/riscv64gc-unknown-none-elf/release/Artemos",
+            "breakpointMode": "file"
         },
     ]
 }
