@@ -5,7 +5,7 @@ edition = "2024"
 authors = [
     "Xingkun Fan <18646154381@163.com>",
     "Qixuan Wu <1043530132@qq.com>",
-    "Yucheng Liu <cheparity@gmail.com>"
+    "Yucheng Liu <cheparity@gmail.com>",
 ]
 
 [dependencies]
@@ -19,3 +19,7 @@ fdt = "0.1.5"
 
 
 [target.'cfg(any(target_arch = "loongarch64"))'.dependencies]
+
+[profile.release]
+debug = true
+opt-level = 0

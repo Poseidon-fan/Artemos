@@ -1,13 +1,12 @@
 {
     "version": "2.0.0",
     "tasks": [
-        // TODO
         {
             "label": "build",
             "type": "shell",
             "command": "make",
             "args": [
-                "build"
+                "build-riscv"
             ],
             "problemMatcher": [
                 "$rustc",
@@ -18,7 +17,7 @@
             "type": "shell",
             "command": "make",
             "args": [
-                "run"
+                "run-riscv"
             ],
             "problemMatcher": [
                 "$rustc",
@@ -29,7 +28,7 @@
             "type": "shell",
             "command": "make",
             "args": [
-                "dbg"
+                "dbg-riscv"
             ],
             "problemMatcher": [
                 "$rustc",

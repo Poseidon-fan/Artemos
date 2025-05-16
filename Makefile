@@ -3,7 +3,7 @@
 #! Can be override in cmd. E.g. make run-riscv OS_FILE=my_kernel.elf MEM=2G SMP=4 FS=rootfs.img DISK_IMG=data.img
 OS_FILE ?= kernel-rv		# kernel file
 MEM ?= 128M					# qemu mem size
-SMP ?= 1					# qemu cpu core count
+SMP ?= 4					# qemu cpu core count
 FS ?= fs.img				# file system image
 DISK_IMG_RV ?= disk.img		# riscv's additional disk (optional)
 DISK_IMG_LA ?= disk-la.img	# LoongArch's additional disk (optional)
@@ -16,44 +16,56 @@ BOOTLOADER_PATH ?= ./bootloader/rustsbi-qemu.bin
 
 build-riscv:
 	@echo "Building riscv with: $(OS_FILE), mem: $(MEM), smp: $(SMP), fs: $(FS), disk: $(DISK_IMG_RV)"
-	# TODO
+	@cargo build --release --target riscv64gc-unknown-none-elf -Z build-std=core,alloc
+	rust-objcopy --strip-all target/riscv64gc-unknown-none-elf/release/Artemos -O binary target/riscv64gc-unknown-none-elf/release/Artemos.bin
 	@echo "Build finished."
 
-run-riscv:
-	@echo "Running RISC-V QEMU with kernel: $(OS_FILE), mem: $(MEM), smp: $(SMP), fs: $(FS), disk: $(DISK_IMG_RV)"
-	qemu-system-riscv64 \
+run-riscv: build-riscv
+	@qemu-system-riscv64 \
 		-machine virt \
-		-kernel $(OS_FILE) \
-		-m $(MEM) \
 		-nographic \
-		-smp $(SMP) \
-		-bios default \
-		-drive file=$(FS),if=none,format=raw,id=x0 \
-		-device virtio-blk-device,drive=x0,bus=virtio-mmio-bus.0 \
-		-no-reboot \
-		-device virtio-net-device,netdev=net \
-		-netdev user,id=net \
-		-rtc base=utc \
-		-drive file=$(DISK_IMG_RV),if=none,format=raw,id=x1 \
-		-device virtio-blk-device,drive=x1,bus=virtio-mmio-bus.1
+		-device loader,file=target/riscv64gc-unknown-none-elf/release/Artemos.bin,addr=0x80200000 \
+		-bios tools/opensbi.bin
+	# @echo "Running RISC-V QEMU with kernel: $(OS_FILE), mem: $(MEM), smp: $(SMP), fs: $(FS), disk: $(DISK_IMG_RV)"
+	# qemu-system-riscv64 \
+	# 	-machine virt \
+	# 	-kernel $(OS_FILE) \
+	# 	-m $(MEM) \
+	# 	-nographic \
+	# 	-smp $(SMP) \
+	# 	-bios default \
+	# 	-drive file=$(FS),if=none,format=raw,id=x0 \
+	# 	-device virtio-blk-device,drive=x0,bus=virtio-mmio-bus.0 \
+	# 	-no-reboot \
+	# 	-device virtio-net-device,netdev=net \
+	# 	-netdev user,id=net \
+	# 	-rtc base=utc \
+	# 	-drive file=$(DISK_IMG_RV),if=none,format=raw,id=x1 \
+	# 	-device virtio-blk-device,drive=x1,bus=virtio-mmio-bus.1
 
-dbg-riscv:
-		qemu-system-riscv64 \
+dbg-riscv: build-riscv
+	@qemu-system-riscv64 \
 		-machine virt \
-		-kernel $(OS_FILE) \
-		-m $(MEM) \
 		-nographic \
-		-smp $(SMP) \
-		-bios default \
-		-drive file=$(FS),if=none,format=raw,id=x0 \
-		-device virtio-blk-device,drive=x0,bus=virtio-mmio-bus.0 \
-		-no-reboot \
-		-device virtio-net-device,netdev=net \
-		-netdev user,id=net \
-		-rtc base=utc \
-		-drive file=$(DISK_IMG_RV),if=none,format=raw,id=x1 \
-		-device virtio-blk-device,drive=x1,bus=virtio-mmio-bus.1 \
+		-device loader,file=target/riscv64gc-unknown-none-elf/release/Artemos.bin,addr=0x80200000 \
+		-bios tools/opensbi.bin \
 		-s -S
+		# qemu-system-riscv64 \
+		# -machine virt \
+		# -kernel $(OS_FILE) \
+		# -m $(MEM) \
+		# -nographic \
+		# -smp $(SMP) \
+		# -bios default \
+		# -drive file=$(FS),if=none,format=raw,id=x0 \
+		# -device virtio-blk-device,drive=x0,bus=virtio-mmio-bus.0 \
+		# -no-reboot \
+		# -device virtio-net-device,netdev=net \
+		# -netdev user,id=net \
+		# -rtc base=utc \
+		# -drive file=$(DISK_IMG_RV),if=none,format=raw,id=x1 \
+		# -device virtio-blk-device,drive=x1,bus=virtio-mmio-bus.1 \
+		# -s -S
 
 
 # ----------------------------------------------------------------------
