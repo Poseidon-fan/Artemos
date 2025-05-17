@@ -1,5 +1,12 @@
-use lazy_static::lazy_static;
+use alloc::{
+    sync::{Arc, Weak},
+    vec::Vec,
+};
 
+use lazy_static::lazy_static;
+use spin::Mutex;
+
+use super::tcb::ThreadControlBlock;
 use crate::arch::utils::QueueAllocator;
 
 struct ProcessControlBlock {

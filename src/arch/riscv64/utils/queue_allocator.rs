@@ -1,3 +1,5 @@
+use alloc::vec::Vec;
+
 pub struct QueueAllocator {
     current: usize,
     recycled: Vec<usize>,
