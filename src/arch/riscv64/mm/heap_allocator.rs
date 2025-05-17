@@ -3,7 +3,7 @@ use buddy_system_allocator::LockedHeap;
 use crate::arch::config::mm::KERNEL_HEAP_SIZE;
 
 #[global_allocator]
-static HEAP_ALLOCATOR: LockedHeap = LockedHeap::empty();
+static HEAP_ALLOCATOR: LockedHeap<16> = LockedHeap::<16>::empty();
 
 #[alloc_error_handler]
 fn alloc_error_handler(layout: core::alloc::Layout) -> ! {
