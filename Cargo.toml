@@ -11,7 +11,7 @@ authors = [
 [dependencies]
 log = "0.4.27"
 spin = "0.10.0"
-lazy_static = "1.4.0"
+lazy_static = { version = "1.4.0", features = ["spin_no_std"] }
 
 
 [target.'cfg(any(target_arch = "riscv64"))'.dependencies]
