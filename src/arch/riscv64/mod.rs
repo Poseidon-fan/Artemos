@@ -1,5 +1,6 @@
 mod boot;
+mod cpu;
 mod sbi;
-pub mod system;
 
 pub mod console;
+pub mod system;
