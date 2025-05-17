@@ -9,6 +9,7 @@ pub fn console_putchar(c: usize) {
 }
 
 /// shutdown the system, sbi interface
-pub fn shutdown() {
+pub fn shutdown() -> ! {
     sbi_call(EID_SHUTDOWN, 0, 0, 0, 0);
+    unreachable!("the system has already been shutdown, should not reach here")
 }

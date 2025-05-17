@@ -7,7 +7,10 @@ use fdt::Fdt;
 use log::info;
 
 use crate::{
-    arch::sbi::{self},
+    arch::{
+        sbi::{self},
+        system,
+    },
     logging,
 };
 
@@ -35,7 +38,11 @@ pub fn kernel_main(hartid: usize, device_tree_paddr: usize) -> ! {
         (0..hart_count).filter(|&i| i != hartid).for_each(|i| {
             sbi::start_hart(i, 0x80200000, 0);
         });
-        loop {}
+        loop {
+            unsafe {
+                system::halt();
+            }
+        }
     } else {
         others_main(hartid)
     }
@@ -43,5 +50,9 @@ pub fn kernel_main(hartid: usize, device_tree_paddr: usize) -> ! {
 
 fn others_main(hart_id: usize) -> ! {
     info!("hart: {} is starting", hart_id);
-    loop {}
+    loop {
+        unsafe {
+            system::halt();
+        }
+    }
 }

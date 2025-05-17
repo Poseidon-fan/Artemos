@@ -2,6 +2,8 @@ use core::panic::PanicInfo;
 
 use log::error;
 
+use crate::arch::system;
+
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
     if let Some(location) = info.location() {
@@ -17,5 +19,5 @@ fn panic(info: &PanicInfo) -> ! {
             info.message().as_str().ok_or("unknown panic msg").unwrap()
         );
     }
-    loop {}
+    system::shutdown();
 }
