@@ -7,6 +7,7 @@ name = "Artemos"
 version = "0.1.0"
 dependencies = [
  "fdt",
+ "lazy_static",
  "log",
  "riscv",
  "spin",
@@ -35,6 +36,12 @@ name = "fdt"
 version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "784a4df722dc6267a04af36895398f59d21d07dce47232adf31ec0ff2fa45e67"
+
+[[package]]
+name = "lazy_static"
+version = "1.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bbd2bcb4c963f2ddae06a2efc7e9f3591312473c50c6685e1f298068316e66fe"
 
 [[package]]
 name = "lock_api"

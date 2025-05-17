@@ -1,12 +1,15 @@
+use lazy_static::lazy_static;
+
 use crate::arch::utils::QueueAllocator;
 
 struct ProcessControlBlock {
     pid: Pid,
     parent: Option<Weak<Mutex<ProcessControlBlock>>>,
     children: Vec<Arc<ProcessControlBlock>>,
-    threads: Vec<Option<Arc<ThreadControlBlock>>>,
     status: ProcessStatus,
     exit_code: i32,
+    threads: Vec<Option<Arc<ThreadControlBlock>>>,
+    tid_allocator: Mutex<QueueAllocator>,
     memory: MemorySet,
     fd_table: Vec<Option<Arc<File>>>,
     cwd: Arc<Dir>,
@@ -27,3 +30,11 @@ impl Drop for Pid {
         PID_ALLOCATOR.lock().dealloc(self.0);
     }
 }
+
+enum ProcessStatus {
+    Running,
+    Zombie,
+    Exited,
+}
+
+impl ProcessControlBlock {}
