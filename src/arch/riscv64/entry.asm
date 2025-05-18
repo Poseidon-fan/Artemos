@@ -4,13 +4,13 @@ _start:
     # a0 = hart id
     # pc = 0x80200000
 
-    # set sp(each hart has one kstack)
-    slli t0, a0, 16  # t0 = hart_id << 16(4096 * 16)
+    # set kernel boot stack
+    # stack size: 4 KB * 16
+    slli t0, a0, 16
     la sp, boot_stack_top
-    sub sp, sp, t0  # sp = stack top - hart_id * stack_size
+    sub sp, sp, t0
 
-    # since the base addr is 0xffff_ffc0_8020_0000
-    # we need to activate pagetable here in case of absolute addressing
+    # activate paging, mapping kernel to high address
     # satp: 8 << 60 | boot_pagetable
     la t0, boot_pagetable
     li t1, 8 << 60
@@ -19,14 +19,13 @@ _start:
     csrw satp, t0
     sfence.vma
 
-    # call kenerl
-    call fake_main
+    # call rust_entry
+    call rust_entry
 
     .section .bss.stack
 
-    .globl boot_stack_lower_bound
-boot_stack_lower_bound:
-
+    .globl boot_stack_bottom
+boot_stack_bottom:
     .space 4096 * 16 * 8  # 8 CPUS at most
 
     .globl boot_stack_top
@@ -35,7 +34,6 @@ boot_stack_top:
     .section .data
     .align 12
 boot_pagetable:
-    # we need 2 pte here
     # 0x0000_0000_8000_0000 -> 0x0000_0000_8000_0000
     # 0xffff_fc00_8000_0000 -> 0x0000_0000_8000_0000
     .quad 0
@@ -44,12 +42,3 @@ boot_pagetable:
     .zero 8 * 255
     .quad (0x80000 << 10) | 0xcf # VRWXAD
     .zero 8 * 253
-
-
-
-    .section .text.trampoline
-    .align 12
-    .global sigreturn_trampoline
-sigreturn_trampoline:
-    li	a7,139
-    ecall
