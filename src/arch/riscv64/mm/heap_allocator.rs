@@ -1,3 +1,5 @@
+use core::ptr::addr_of_mut;
+
 use buddy_system_allocator::LockedHeap;
 
 use crate::arch::config::mm::KERNEL_HEAP_SIZE;
@@ -16,6 +18,6 @@ pub fn init() {
     unsafe {
         HEAP_ALLOCATOR
             .lock()
-            .init(HEAP_SPACE.as_ptr() as usize, KERNEL_HEAP_SIZE);
+            .init(addr_of_mut!(HEAP_SPACE) as usize, KERNEL_HEAP_SIZE);
     }
 }

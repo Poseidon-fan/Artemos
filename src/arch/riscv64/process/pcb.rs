@@ -17,9 +17,9 @@ struct ProcessControlBlock {
     exit_code: i32,
     threads: Vec<Option<Arc<ThreadControlBlock>>>,
     tid_allocator: Mutex<QueueAllocator>,
-    memory: MemorySet,
-    fd_table: Vec<Option<Arc<File>>>,
-    cwd: Arc<Dir>,
+    // memory: MemorySet,
+    // fd_table: Vec<Option<Arc<File>>>,
+    // cwd: Arc<Dir>,
 }
 
 struct Pid(usize);
