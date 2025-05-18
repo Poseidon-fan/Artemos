@@ -99,6 +99,7 @@ fn trigger_other_harts(hart_id: usize, device_tree_vaddr: usize) {
     }
     info!("hart_count: {}", hart_count);
     (0..hart_count).filter(|&i| i != hart_id).for_each(|i| {
+        // pass paddr here, because other harts don't start paging yet
         sbi::start_hart(i, 0x80200000, 0);
     });
 }
