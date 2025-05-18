@@ -10,6 +10,6 @@ pub fn shutdown() -> ! {
 
 /// Halt instruction
 #[inline(always)]
-pub unsafe fn halt() {
+pub fn halt() {
     unsafe { asm!("wfi", options(nomem, nostack)) }
 }

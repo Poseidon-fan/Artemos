@@ -28,3 +28,11 @@ riscv64-elf-gdb \
 ```
 cargo clean && cargo build --release --target riscv64gc-unknown-none-elf -Z build-std=core,alloc && rust-objcopy --strip-all target/riscv64gc-unknown-none-elf/release/Artemos -O binary target/riscv64gc-unknown-none-elf/release/Artemos.bin && qemu-system-riscv64 -machine virt -nographic -device loader,file=target/riscv64gc-unknown-none-elf/release/Artemos.bin,addr=0x80200000 -bios tools/opensbi.bin -smp 4
 ```
+
+运行 gdb 调试
+```
+riscv64-elf-gdb \
+    -ex 'file target/riscv64gc-unknown-none-elf/release/Artemos' \
+    -ex 'set arch riscv:rv64' \
+    -ex 'target remote localhost:1234'
+```

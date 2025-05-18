@@ -1,5 +1,5 @@
 use core::{
-    arch::global_asm,
+    arch::{asm, global_asm},
     sync::atomic::{AtomicBool, Ordering},
 };
 
@@ -14,6 +14,20 @@ use crate::{
 global_asm!(include_str!("entry.asm"));
 
 static FIRST_HART: AtomicBool = AtomicBool::new(true);
+
+
+const TMP: usize = 0xffff_ffc0_0000_0000;
+#[unsafe(no_mangle)]
+pub fn fake_main(hart_id: usize, device_tree_paddr: usize) {
+    unsafe {
+        asm!("add sp, sp, {}", in(reg) TMP);
+        asm!("la t0, kernel_main");
+        asm!("add t0, t0, {}", in(reg) TMP);
+        asm!("mv a0, {}", in(reg) hart_id);
+        asm!("mv a1, {}", in(reg) device_tree_paddr);
+        asm!("jalr zero, 0(t0)");
+    }
+}
 
 #[unsafe(no_mangle)]
 pub fn kernel_main(hart_id: usize, device_tree_paddr: usize) -> ! {
@@ -33,9 +47,7 @@ pub fn kernel_main(hart_id: usize, device_tree_paddr: usize) -> ! {
     // trigger other harts to start
     trigger_other_harts(hart_id, device_tree_paddr);
     loop {
-        unsafe {
-            system::halt();
-        }
+        system::halt();
     }
 }
 
@@ -43,9 +55,7 @@ fn others_main(hart_id: usize) -> ! {
     cpu::init_local_cpu_context(hart_id);
     info!("hart: {} is starting", cpu::hart_id());
     loop {
-        unsafe {
-            system::halt();
-        }
+        system::halt();
     }
 }
 
@@ -59,7 +69,7 @@ fn clear_bss() {
 
 fn trigger_other_harts(hart_id: usize, device_tree_paddr: usize) {
     // get hart count from device tree
-    let fdt = unsafe { Fdt::from_ptr(device_tree_paddr as *const u8).unwrap() };
+    let fdt = unsafe { Fdt::from_ptr((device_tree_paddr + TMP) as *const u8).unwrap() };
     let mut hart_count = 0;
     for node in fdt.find_all_nodes("/cpus/cpu") {
         if let Some(_reg) = node.property("reg") {

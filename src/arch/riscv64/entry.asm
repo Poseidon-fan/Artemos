@@ -1,27 +1,55 @@
     .section .text.entry
     .globl _start
 _start:
-    # a0 == hartid
-    # pc == 0x80200000
-    # sp == 0x800xxxxx
+    # a0 = hart id
+    # pc = 0x80200000
 
-    # 1. set sp
-    # sp = bootstack + (hartid + 1) * 0x10000
-    add     t0, a0, 1
-    slli    t0, t0, 16 # 64KB, max stack size
-    la      sp, bootstack
-    add     sp, sp, t0
+    # set sp(each hart has one kstack)
+    slli t0, a0, 16  # t0 = hart_id << 16(4096 * 16)
+    la sp, boot_stack_top
+    sub sp, sp, t0  # sp = stack top - hart_id * stack_size
 
-    # 2. jump to kernel_main
-    call kernel_main
+    # since the base addr is 0xffff_ffc0_8020_0000
+    # we need to activate pagetable here in case of absolute addressing
+    # satp: 8 << 60 | boot_pagetable
+    la t0, boot_pagetable
+    li t1, 8 << 60
+    srli t0, t0, 12
+    or t0, t0, t1
+    csrw satp, t0
+    sfence.vma
+
+    # call kenerl
+    call fake_main
 
     .section .bss.stack
-    .align 12   # page align
-    .global bootstack
-bootstack:
-    .space 4096 * 16 * 8 # 64KB x 8 CPUs
-    .global bootstacktop
-bootstacktop:
+
+    .globl boot_stack_lower_bound
+boot_stack_lower_bound:
+
+    .space 4096 * 16 * 8  # 8 CPUS at most
+
+    .globl boot_stack_top
+boot_stack_top:
 
     .section .data
-    .align 12   # page align
+    .align 12
+boot_pagetable:
+    # we need 2 pte here
+    # 0x0000_0000_8000_0000 -> 0x0000_0000_8000_0000
+    # 0xffff_fc00_8000_0000 -> 0x0000_0000_8000_0000
+    .quad 0
+    .quad 0
+    .quad (0x80000 << 10) | 0xcf # VRWXAD
+    .zero 8 * 255
+    .quad (0x80000 << 10) | 0xcf # VRWXAD
+    .zero 8 * 253
+
+
+
+    .section .text.trampoline
+    .align 12
+    .global sigreturn_trampoline
+sigreturn_trampoline:
+    li	a7,139
+    ecall
