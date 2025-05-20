@@ -9,7 +9,7 @@ use spin::Mutex;
 use super::tcb::ThreadControlBlock;
 use crate::arch::utils::QueueAllocator;
 
-struct ProcessControlBlock {
+pub struct ProcessControlBlock {
     pid: Pid,
     parent: Option<Weak<Mutex<ProcessControlBlock>>>,
     children: Vec<Arc<ProcessControlBlock>>,
@@ -44,4 +44,16 @@ enum ProcessStatus {
     Exited,
 }
 
-impl ProcessControlBlock {}
+impl ProcessControlBlock {
+    pub fn new_initproc() -> Arc<ProcessControlBlock> {
+        Arc::new(ProcessControlBlock {
+            pid: pid_alloc(),
+            parent: None,
+            children: Vec::new(),
+            status: ProcessStatus::Running,
+            exit_code: 0,
+            threads: Vec::new(),
+            tid_allocator: Mutex::new(QueueAllocator::new()),
+        })
+    }
+}
