@@ -18,7 +18,7 @@ static FIRST_HART: AtomicBool = AtomicBool::new(true);
 /// Rust entry, called from entry.asm.
 /// Mainly used to convert the abs address to virtual address, since we've already configured the
 /// paging table, and jump to kernel_main.
-/// Things has to convert:
+/// Things have to convert:
 /// - sp: point to kernel boot stack
 /// - kernel_main: jump to kernel_main by virtual address
 /// - device_tree_paddr: convert to virtual address and pass to kernel_main
