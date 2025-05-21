@@ -23,3 +23,6 @@ fdt = "0.1.5"
 [profile.release]
 debug = true
 opt-level = 0
+
+[workspace]
+members = ["fs"]
