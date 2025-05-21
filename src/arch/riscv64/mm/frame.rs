@@ -22,10 +22,19 @@ pub fn init_frame_allocator() {
         kva2pa(VirtAddr(ekernel as usize)).ceil(),
         kva2pa(VirtAddr(MEMORY_END)).floor(),
     );
+    frame_allocator_test();
     info!(
         "frame allocator init successfully, start {:#x}, end {:#x}",
         ekernel as usize, MEMORY_END
     );
+}
+
+pub fn frame_alloc() -> Option<FrameTracker> {
+    FRAME_ALLOCATOR.lock().alloc().map(FrameTracker::new)
+}
+
+fn frame_dealloc(ppn: PhysPageNum) {
+    FRAME_ALLOCATOR.lock().dealloc(ppn);
 }
 
 trait FrameAllocator {
@@ -37,6 +46,10 @@ pub struct StackFrameAllocator {
     current: usize,
     end: usize,
     recycled: Vec<usize>,
+}
+
+pub struct FrameTracker {
+    pub ppn: PhysPageNum,
 }
 
 impl FrameAllocator for StackFrameAllocator {
@@ -76,4 +89,37 @@ impl StackFrameAllocator {
         self.current = start.0;
         self.end = end.0;
     }
+}
+
+impl FrameTracker {
+    pub fn new(ppn: PhysPageNum) -> Self {
+        FrameTracker { ppn }
+    }
+}
+
+impl Drop for FrameTracker {
+    fn drop(&mut self) {
+        frame_dealloc(self.ppn);
+    }
+}
+
+#[allow(unused)]
+/// a simple test for frame allocator
+pub fn frame_allocator_test() {
+    use crate::println;
+    info!("frame_allocator_test start...");
+    let mut v: Vec<FrameTracker> = Vec::new();
+    for i in 0..5 {
+        let frame = frame_alloc().unwrap();
+        println!("alloca frame: {}", frame.ppn.0);
+        v.push(frame);
+    }
+    v.clear();
+    for i in 0..5 {
+        let frame = frame_alloc().unwrap();
+        println!("alloca frame: {}", frame.ppn.0);
+        v.push(frame);
+    }
+    drop(v);
+    info!("frame_allocator_test passed!");
 }
