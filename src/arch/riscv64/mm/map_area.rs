@@ -63,7 +63,6 @@ impl MapArea {
     }
 
     /// Data: at the `offset` of the start va.
-    /// Assume that all frames were cleared before.
     pub fn copy_data(&mut self, page_table: &mut PageTable, data: &[u8], offset: usize) {
         assert_eq!(self.map_type, MapType::Framed);
 

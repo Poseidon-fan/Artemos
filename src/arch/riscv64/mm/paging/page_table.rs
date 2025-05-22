@@ -25,7 +25,16 @@ impl PageTable {
         (8usize << 60) | self.root_ppn.0
     }
 
-    pub fn map(&mut self, vpn: VirtPageNum, ppn: PhysPageNum, flags: PTEFlags) {}
+    pub fn map(&mut self, vpn: VirtPageNum, ppn: PhysPageNum, flags: PTEFlags) {
+        let pte = self.find_pte_create(vpn).expect("failed to create pte");
+        assert!(
+            !pte.is_valid(),
+            "vpn {:x}, va {:x} is mapped before mapping",
+            vpn.0,
+            vpn.0 << 12
+        );
+        *pte = PageTableEntry::new(ppn, flags); // TODO does flags need a mask ?
+    }
 
     pub fn unmap(&mut self, vpn: VirtPageNum) {}
 
