@@ -34,4 +34,16 @@ impl PageTableEntry {
             bits: (ppn.0 << 10) | flags.bits() as usize,
         }
     }
+
+    pub fn ppn(&self) -> PhysPageNum {
+        ((self.bits >> 10) & ((1usize << 44) - 1)).into()
+    }
+
+    fn flags(&self) -> PTEFlags {
+        PTEFlags::from_bits(self.bits as u16).unwrap()
+    }
+
+    pub fn is_valid(&self) -> bool {
+        !(self.flags() & PTEFlags::V).is_empty()
+    }
 }

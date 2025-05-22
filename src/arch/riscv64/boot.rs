@@ -73,6 +73,7 @@ pub fn kernel_main(hart_id: usize, device_tree_vaddr: usize) -> ! {
 /// Other harts entry, called from kernel_main.
 fn others_main(hart_id: usize) -> ! {
     cpu::init_local_cpu_context(hart_id);
+    mm::activate_kernel_space();
     info!("hart: {} is starting", cpu::hart_id());
     loop {
         system::halt();

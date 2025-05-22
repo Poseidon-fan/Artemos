@@ -5,6 +5,8 @@ mod map_area;
 mod memory_set;
 mod paging;
 
+pub use memory_set::activate_kernel_space;
+
 pub fn init() {
     heap_allocator::init_heap();
     frame::init_frame_allocator();

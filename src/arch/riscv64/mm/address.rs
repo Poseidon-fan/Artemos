@@ -1,3 +1,4 @@
+use super::paging::pte::PageTableEntry;
 use crate::arch::config::{KERNEL_ADDR_OFFSET, PAGE_SIZE, PAGE_SIZE_BITS};
 
 #[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq)]
@@ -24,6 +25,7 @@ pub fn pa2kva(paddr: PhysAddr) -> VirtAddr {
 
 const PA_WIDTH_SV39: usize = 56;
 const PPN_WIDTH_SV39: usize = PA_WIDTH_SV39 - PAGE_SIZE_BITS;
+const VA_WIDTH_SV39: usize = 39;
 
 
 impl PhysAddr {
@@ -72,6 +74,18 @@ impl From<PhysPageNum> for usize {
     }
 }
 
+impl From<usize> for VirtAddr {
+    fn from(v: usize) -> Self {
+        // Self(v & ((1 << VA_WIDTH_SV39) - 1))
+        let tmp = (v as isize >> VA_WIDTH_SV39) as isize;
+        if tmp != 0 && tmp != -1 {
+            log::error!("v {:#x}, tmp {:#x}", v, tmp);
+        }
+        assert!(tmp == 0 || tmp == -1, "invalid va: {:#x}", v);
+        Self(v)
+    }
+}
+
 impl From<PhysAddr> for PhysPageNum {
     fn from(v: PhysAddr) -> Self {
         assert_eq!(v.page_offset(), 0);
@@ -88,6 +102,26 @@ impl From<PhysPageNum> for PhysAddr {
 impl PhysPageNum {
     pub fn bytes_array(&self) -> &'static mut [u8] {
         let pa: PhysAddr = (*self).into();
-        unsafe { core::slice::from_raw_parts_mut(pa.0 as *mut u8, 4096) }
+        let kernel_pa = pa.0 + KERNEL_ADDR_OFFSET;
+        unsafe { core::slice::from_raw_parts_mut(kernel_pa as *mut u8, 4096) }
+    }
+
+    pub fn pte_array(&self) -> &'static mut [PageTableEntry] {
+        let pa: PhysAddr = (*self).into();
+        let kernel_pa = pa.0 + KERNEL_ADDR_OFFSET;
+        unsafe { core::slice::from_raw_parts_mut(kernel_pa as *mut PageTableEntry, 512) }
+    }
+}
+
+impl VirtPageNum {
+    /// Return VPN 3 level index
+    pub fn indexes(&self) -> [usize; 3] {
+        let mut vpn = self.0;
+        let mut idx = [0usize; 3];
+        for i in (0..3).rev() {
+            idx[i] = vpn & 511;
+            vpn >>= 9;
+        }
+        idx
     }
 }

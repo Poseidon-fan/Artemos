@@ -1,6 +1,6 @@
 use alloc::{vec, vec::Vec};
 
-use super::pte::PTEFlags;
+use super::pte::{PTEFlags, PageTableEntry};
 use crate::arch::mm::{
     address::{PhysPageNum, VirtPageNum},
     frame::{FrameTracker, frame_alloc},
@@ -28,4 +28,22 @@ impl PageTable {
     pub fn map(&mut self, vpn: VirtPageNum, ppn: PhysPageNum, flags: PTEFlags) {}
 
     pub fn unmap(&mut self, vpn: VirtPageNum) {}
+
+    fn find_pte_create(&mut self, vpn: VirtPageNum) -> Option<&mut PageTableEntry> {
+        let idxs = vpn.indexes();
+        let mut ppn = self.root_ppn;
+        let mut result = None;
+        for (i, idx) in idxs.iter().enumerate() {
+            let pte = &mut ppn.pte_array()[*idx];
+            if i == 2 {
+                result = Some(pte);
+                break;
+            }
+            if !pte.is_valid() {
+                return None;
+            }
+            ppn = pte.ppn();
+        }
+        result
+    }
 }
