@@ -1,6 +1,7 @@
 use alloc::collections::btree_map::BTreeMap;
 
 use bitflags::bitflags;
+use log::info;
 
 use super::{
     address::{PhysPageNum, VirtAddr, VirtPageNum},
@@ -40,7 +41,7 @@ impl MapArea {
         let (start_vpn, end_vpn) = self.vpn_range;
         (start_vpn.0..end_vpn.0).for_each(|vpn| {
             self.map_one(VirtPageNum(vpn), page_table);
-        })
+        });
     }
 
     fn map_one(&mut self, vpn: VirtPageNum, page_table: &mut PageTable) {
@@ -55,7 +56,7 @@ impl MapArea {
                 self.data_frames.insert(vpn, frame);
             },
         }
-        let flags = PTEFlags::from_bits(self.map_perm.bits()).expect("invalid map permission");
+        let flags = PTEFlags::from_bits(self.map_perm.bits()).unwrap();
         page_table.map(vpn, ppn, flags);
     }
 

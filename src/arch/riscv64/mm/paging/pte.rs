@@ -1,4 +1,5 @@
 use bitflags::bitflags;
+use log::info;
 
 use crate::arch::mm::address::PhysPageNum;
 
@@ -35,7 +36,7 @@ impl PageTableEntry {
     }
 
     fn flags(&self) -> PTEFlags {
-        PTEFlags::from_bits(self.bits as u16).unwrap()
+        PTEFlags::from_bits((self.bits & ((1 << 9) - 1)) as u16).unwrap()
     }
 
     pub fn is_valid(&self) -> bool {

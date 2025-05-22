@@ -1,5 +1,7 @@
 use alloc::{vec, vec::Vec};
 
+use log::info;
+
 use super::pte::{PTEFlags, PageTableEntry};
 use crate::arch::mm::{
     address::{PhysPageNum, VirtPageNum},
@@ -14,7 +16,7 @@ pub struct PageTable {
 
 impl PageTable {
     pub fn new() -> Self {
-        let frame = frame_alloc().expect("no more frames to alloc");
+        let frame = frame_alloc().unwrap();
         Self {
             root_ppn: frame.ppn,
             frames: vec![frame],
@@ -26,7 +28,7 @@ impl PageTable {
     }
 
     pub fn map(&mut self, vpn: VirtPageNum, ppn: PhysPageNum, flags: PTEFlags) {
-        let pte = self.find_pte_create(vpn).expect("failed to create pte");
+        let pte = self.find_pte_create(vpn).unwrap();
         assert!(
             !pte.is_valid(),
             "vpn {:x}, va {:x} is mapped before mapping",
@@ -53,7 +55,9 @@ impl PageTable {
                 break;
             }
             if !pte.is_valid() {
-                return None;
+                let frame = frame_alloc().unwrap();
+                *pte = PageTableEntry::new(frame.ppn, PTEFlags::V);
+                self.frames.push(frame);
             }
             ppn = pte.ppn();
         }

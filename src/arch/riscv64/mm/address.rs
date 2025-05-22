@@ -1,3 +1,5 @@
+use log::info;
+
 use super::paging::pte::PageTableEntry;
 use crate::arch::config::{KERNEL_ADDR_OFFSET, PAGE_SIZE, PAGE_SIZE_BITS};
 
@@ -102,14 +104,14 @@ impl From<PhysPageNum> for PhysAddr {
 impl PhysPageNum {
     pub fn bytes_array(&self) -> &'static mut [u8] {
         let pa: PhysAddr = (*self).into();
-        let kernel_pa = pa.0 + KERNEL_ADDR_OFFSET;
-        unsafe { core::slice::from_raw_parts_mut(kernel_pa as *mut u8, 4096) }
+        let kernel_va = pa2kva(pa).0;
+        unsafe { core::slice::from_raw_parts_mut(kernel_va as *mut u8, 4096) }
     }
 
     pub fn pte_array(&self) -> &'static mut [PageTableEntry] {
         let pa: PhysAddr = (*self).into();
-        let kernel_pa = pa.0 + KERNEL_ADDR_OFFSET;
-        unsafe { core::slice::from_raw_parts_mut(kernel_pa as *mut PageTableEntry, 512) }
+        let kernel_va = pa2kva(pa).0;
+        unsafe { core::slice::from_raw_parts_mut(kernel_va as *mut PageTableEntry, 512) }
     }
 }
 

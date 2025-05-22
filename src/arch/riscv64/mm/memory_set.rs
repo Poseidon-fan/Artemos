@@ -1,7 +1,7 @@
 use alloc::vec::Vec;
 use core::arch::asm;
 
-use log::info;
+use log::{debug, info};
 use riscv::register::satp::{self, Satp};
 use spin::{Lazy, Mutex};
 
@@ -44,6 +44,7 @@ impl MemorySet {
         info!(".text [{:#x}, {:#x})", stext as usize, etext as usize);
         info!(".rodata [{:#x}, {:#x})", srodata as usize, erodata as usize);
         info!(".data [{:#x}, {:#x})", sdata as usize, edata as usize);
+        info!(".stack [{:#x}, {:#x})", sstack as usize, estack as usize);
         info!(".bss [{:#x}, {:#x})", sbss_with_stack as usize, ebss as usize);
 
         info!("physical memory: [{:#x},{:#x})", ekernel as usize, MEMORY_END);
