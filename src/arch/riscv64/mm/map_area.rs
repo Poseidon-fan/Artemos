@@ -7,10 +7,7 @@ use super::{
     frame::{FrameTracker, frame_alloc},
     paging::{page_table::PageTable, pte::PTEFlags},
 };
-use crate::arch::{
-    config::{KERNEL_ADDR_OFFSET, PAGE_SIZE},
-    mm::paging::page_table,
-};
+use crate::arch::config::{KERNEL_ADDR_OFFSET, PAGE_SIZE};
 
 pub struct MapArea {
     vpn_range: (VirtPageNum, VirtPageNum),

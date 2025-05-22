@@ -1,11 +1,6 @@
-use alloc::{vec, vec::Vec};
-
 use bitflags::bitflags;
 
-use crate::arch::mm::{
-    address::{PhysPageNum, VirtPageNum},
-    frame::{FrameTracker, frame_alloc},
-};
+use crate::arch::mm::address::PhysPageNum;
 
 
 bitflags! {

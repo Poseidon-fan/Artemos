@@ -1,6 +1,7 @@
 use core::ptr::addr_of_mut;
 
 use buddy_system_allocator::LockedHeap;
+use log::info;
 
 use crate::arch::config::KERNEL_HEAP_SIZE;
 
@@ -21,5 +22,14 @@ pub fn init_heap() {
         HEAP_ALLOCATOR
             .lock()
             .init(addr_of_mut!(HEAP_SPACE) as usize, KERNEL_HEAP_SIZE);
+    }
+    heap_test();
+}
+
+fn heap_test() {
+    use alloc::vec;
+    let t = vec![1, 2, 3, 4, 5];
+    for i in t {
+        info!("this is heap test: {}", i);
     }
 }

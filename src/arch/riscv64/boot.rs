@@ -61,7 +61,6 @@ pub fn kernel_main(hart_id: usize, device_tree_vaddr: usize) -> ! {
     cpu::init_local_cpu_context(hart_id);
 
     mm::init();
-    heap_test();
 
     // trigger other harts to start
     trigger_other_harts(hart_id, device_tree_vaddr);
@@ -103,12 +102,4 @@ fn trigger_other_harts(hart_id: usize, device_tree_vaddr: usize) {
         // pass paddr here, because other harts don't start paging yet
         sbi::start_hart(i, 0x80200000, 0);
     });
-}
-
-fn heap_test() {
-    use alloc::vec;
-    let t = vec![1, 2, 3, 4, 5];
-    for i in t {
-        info!("this is heap test: {}", i);
-    }
 }

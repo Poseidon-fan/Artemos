@@ -77,7 +77,7 @@ impl From<PhysPageNum> for usize {
 impl From<usize> for VirtAddr {
     fn from(v: usize) -> Self {
         // Self(v & ((1 << VA_WIDTH_SV39) - 1))
-        let tmp = (v as isize >> VA_WIDTH_SV39) as isize;
+        let tmp = v as isize >> VA_WIDTH_SV39;
         if tmp != 0 && tmp != -1 {
             log::error!("v {:#x}, tmp {:#x}", v, tmp);
         }
