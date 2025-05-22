@@ -47,7 +47,7 @@ SECTIONS
 
     . = ALIGN(4K);
     estack = .;
-    /* sbss_with_stack = .; */
+    sbss_with_stack = .;
     sbss = .;
     .bss : {
         *(.bss .bss.*)
