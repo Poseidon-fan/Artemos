@@ -1,11 +1,10 @@
 use alloc::{vec, vec::Vec};
 
-use log::info;
-
 use super::pte::{PTEFlags, PageTableEntry};
 use crate::arch::mm::{
     address::{PhysPageNum, VirtPageNum},
     frame::{FrameTracker, frame_alloc},
+    paging::pte,
 };
 
 pub struct PageTable {
@@ -38,7 +37,11 @@ impl PageTable {
         *pte = PageTableEntry::new(ppn, flags); // TODO does flags need a mask ?
     }
 
-    pub fn unmap(&mut self, vpn: VirtPageNum) {}
+    pub fn unmap(&mut self, vpn: VirtPageNum) {
+        let pte = self.find_pte(vpn).unwrap();
+        assert!(pte.is_valid(), "vpn {} is invalid before unmapping", vpn.0);
+        *pte = PageTableEntry::empty();
+    }
 
     pub fn translate(&self, vpn: VirtPageNum) -> Option<PageTableEntry> {
         self.find_pte(vpn).copied()
@@ -64,12 +67,12 @@ impl PageTable {
         result
     }
 
-    fn find_pte(&self, vpn: VirtPageNum) -> Option<&PageTableEntry> {
+    fn find_pte(&self, vpn: VirtPageNum) -> Option<&mut PageTableEntry> {
         let idxs = vpn.indexes();
         let mut ppn = self.root_ppn;
-        let mut result = None;
+        let mut result: Option<&mut PageTableEntry> = None;
         for (i, idx) in idxs.iter().enumerate() {
-            let pte = &ppn.pte_array()[*idx];
+            let pte = &mut ppn.pte_array()[*idx];
             if i == 2 {
                 result = Some(pte);
                 break;

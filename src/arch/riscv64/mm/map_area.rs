@@ -1,7 +1,6 @@
 use alloc::collections::btree_map::BTreeMap;
 
 use bitflags::bitflags;
-use log::info;
 
 use super::{
     address::{PhysPageNum, VirtAddr, VirtPageNum},

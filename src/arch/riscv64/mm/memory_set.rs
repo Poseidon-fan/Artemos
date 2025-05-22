@@ -1,7 +1,7 @@
 use alloc::vec::Vec;
 use core::arch::asm;
 
-use log::{debug, info};
+use log::info;
 use riscv::register::satp::{self, Satp};
 use spin::{Lazy, Mutex};
 

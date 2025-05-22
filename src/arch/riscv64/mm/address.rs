@@ -1,5 +1,3 @@
-use log::info;
-
 use super::paging::pte::PageTableEntry;
 use crate::arch::config::{KERNEL_ADDR_OFFSET, PAGE_SIZE, PAGE_SIZE_BITS};
 
