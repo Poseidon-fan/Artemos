@@ -74,3 +74,10 @@ impl From<PhysPageNum> for PhysAddr {
         Self(v.0 << PAGE_SIZE_BITS)
     }
 }
+
+impl PhysPageNum {
+    pub fn bytes_array(&self) -> &'static mut [u8] {
+        let pa: PhysAddr = (*self).into();
+        unsafe { core::slice::from_raw_parts_mut(pa.0 as *mut u8, 4096) }
+    }
+}

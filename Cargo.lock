@@ -6,6 +6,7 @@ version = 4
 name = "Artemos"
 version = "0.1.0"
 dependencies = [
+ "bitflags",
  "buddy_system_allocator",
  "fdt",
  "lazy_static",
@@ -19,6 +20,12 @@ name = "autocfg"
 version = "1.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ace50bade8e6234aa140d9a2f552bbee1db4d353f69b8217bc503490fc1a9f26"
+
+[[package]]
+name = "bitflags"
+version = "2.9.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1b8e56985ec62d17e9c1001dc89c88ecd7dc08e47eba5ec7c29c7b5eeecde967"
 
 [[package]]
 name = "buddy_system_allocator"
