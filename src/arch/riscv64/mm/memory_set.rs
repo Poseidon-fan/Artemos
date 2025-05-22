@@ -120,7 +120,7 @@ impl MemorySet {
                 MEMORY_END.into(),
                 MapType::Direct,
                 MapPermission::R | MapPermission::W,
-                AreaType::Elf,
+                AreaType::Physical,
             ),
             None,
             0,

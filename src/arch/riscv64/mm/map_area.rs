@@ -62,12 +62,13 @@ impl MapArea {
     /// Data: at the `offset` of the start va.
     /// Assume that all frames were cleared before.
     pub fn copy_data_with_offset(&mut self, data: &[u8], offset: usize) {
-        // assert_eq!(self.map_type, MapType::Framed);
+        assert_eq!(self.map_type, MapType::Framed);
     }
 }
 
 /// kernel area uses direct mapping
 /// user area uses frame mapping
+#[derive(PartialEq, Eq, Debug)]
 pub enum MapType {
     Direct,
     Framed,
