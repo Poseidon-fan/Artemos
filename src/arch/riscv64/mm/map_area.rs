@@ -7,7 +7,10 @@ use super::{
     frame::{FrameTracker, frame_alloc},
     paging::{page_table::PageTable, pte::PTEFlags},
 };
-use crate::arch::config::KERNEL_ADDR_OFFSET;
+use crate::arch::{
+    config::{KERNEL_ADDR_OFFSET, PAGE_SIZE},
+    mm::paging::page_table,
+};
 
 pub struct MapArea {
     vpn_range: (VirtPageNum, VirtPageNum),
@@ -61,8 +64,25 @@ impl MapArea {
 
     /// Data: at the `offset` of the start va.
     /// Assume that all frames were cleared before.
-    pub fn copy_data_with_offset(&mut self, data: &[u8], offset: usize) {
+    pub fn copy_data(&mut self, page_table: &mut PageTable, data: &[u8], offset: usize) {
         assert_eq!(self.map_type, MapType::Framed);
+
+        let mut start: usize = 0;
+        let mut page_offset: usize = offset;
+        let mut cur_vpn = self.vpn_range.0;
+        let len = data.len();
+        loop {
+            let src = &data[start..len.min(start + PAGE_SIZE - page_offset)];
+            let dst = &mut page_table.translate(cur_vpn).unwrap().ppn().bytes_array()[offset..offset + src.len()];
+            dst.fill(0);
+            dst.copy_from_slice(src);
+            start += PAGE_SIZE - offset;
+            page_offset = 0;
+            if start >= len {
+                break;
+            }
+            cur_vpn = VirtPageNum(cur_vpn.0 + 1);
+        }
     }
 }
 

@@ -29,12 +29,34 @@ impl PageTable {
 
     pub fn unmap(&mut self, vpn: VirtPageNum) {}
 
+    pub fn translate(&self, vpn: VirtPageNum) -> Option<PageTableEntry> {
+        self.find_pte(vpn).copied()
+    }
+
     fn find_pte_create(&mut self, vpn: VirtPageNum) -> Option<&mut PageTableEntry> {
         let idxs = vpn.indexes();
         let mut ppn = self.root_ppn;
         let mut result = None;
         for (i, idx) in idxs.iter().enumerate() {
             let pte = &mut ppn.pte_array()[*idx];
+            if i == 2 {
+                result = Some(pte);
+                break;
+            }
+            if !pte.is_valid() {
+                return None;
+            }
+            ppn = pte.ppn();
+        }
+        result
+    }
+
+    fn find_pte(&self, vpn: VirtPageNum) -> Option<&PageTableEntry> {
+        let idxs = vpn.indexes();
+        let mut ppn = self.root_ppn;
+        let mut result = None;
+        for (i, idx) in idxs.iter().enumerate() {
+            let pte = &ppn.pte_array()[*idx];
             if i == 2 {
                 result = Some(pte);
                 break;

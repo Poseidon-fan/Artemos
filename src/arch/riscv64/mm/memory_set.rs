@@ -33,7 +33,7 @@ impl MemorySet {
     pub fn push(&mut self, mut area: MapArea, data: Option<&[u8]>, offset: usize) {
         area.map(&mut self.page_table);
         if let Some(data) = data {
-            area.copy_data_with_offset(data, offset);
+            area.copy_data(&mut self.page_table, data, offset);
         }
         self.areas.push(area);
     }
