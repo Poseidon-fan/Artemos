@@ -1,4 +1,4 @@
-use alloc::{boxed::Box, string::String, sync::Arc, vec::Vec};
+use alloc::{string::String, sync::Arc, vec::Vec};
 use core::{any::Any, mem::size_of};
 
 use super::{VfsError, VfsFileType, VfsResult};

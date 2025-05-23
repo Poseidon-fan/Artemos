@@ -1,3 +1,5 @@
+mod dentry;
+mod filesystem;
 mod inode;
 
 /// VFS error type
