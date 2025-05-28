@@ -25,4 +25,4 @@ debug = true
 opt-level = 0
 
 [workspace]
-members = ["fs"]
+exclude = ["fs"]

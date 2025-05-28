@@ -1,7 +1,7 @@
 use alloc::{string::String, sync::Arc, vec::Vec};
 use core::{any::Any, mem::size_of};
 
-use super::{VfsError, VfsFileType, VfsResult};
+use super::ftype::{VfsError, VfsFileType, VfsResult};
 
 /// VFS inode trait
 pub trait VfsInode: Any + Send + Sync {

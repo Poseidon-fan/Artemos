@@ -7,7 +7,10 @@ use alloc::{
 
 use spin::Mutex;
 
-use super::{VfsError, VfsFileType, VfsResult, inode::VfsInode};
+use super::{
+    ftype::{VfsError, VfsFileType, VfsResult},
+    inode::VfsInode,
+};
 
 /// VFS directory entry
 pub struct VfsDentry {

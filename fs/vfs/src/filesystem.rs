@@ -8,9 +8,9 @@ use alloc::{
 use spin::Mutex;
 
 use super::{
-    VfsError, VfsFileType, VfsResult,
-    dentry::{self, VfsDentry},
-    inode::{self, VfsInode},
+    dentry::VfsDentry,
+    ftype::{VfsError, VfsFileType, VfsResult},
+    inode::VfsInode,
 };
 
 /// File system core

@@ -1,7 +1,3 @@
-mod dentry;
-mod filesystem;
-mod inode;
-
 /// VFS error type
 #[derive(Debug)]
 pub enum VfsError {
@@ -27,6 +23,7 @@ pub enum VfsFileType {
     Socket = 0xC000,    // S_IFSOCK
     BlockDev = 0x6000,  // S_IFBLK
     CharDev = 0x2000,   // S_IFCHR
+    Other = 0x0000,     // OTHER
 }
 
 /// Result type alias
