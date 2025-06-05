@@ -20,6 +20,7 @@ version = "0.1.0"
 dependencies = [
  "ext4_rs",
  "lazy_static",
+ "spin",
  "vfs",
 ]
 

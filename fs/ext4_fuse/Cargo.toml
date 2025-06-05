@@ -6,4 +6,5 @@ edition = "2024"
 [dependencies]
 ext4_rs = "1.3.2"
 lazy_static = "1.5.0"
+spin = "0.10.0"
 vfs = { path = "../vfs" }
