@@ -1,4 +1,5 @@
 use alloc::collections::btree_map::BTreeMap;
+use core::clone;
 
 use bitflags::bitflags;
 
@@ -10,7 +11,7 @@ use super::{
 use crate::arch::config::{KERNEL_ADDR_OFFSET, PAGE_SIZE};
 
 pub struct MapArea {
-    vpn_range: (VirtPageNum, VirtPageNum),
+    pub vpn_range: (VirtPageNum, VirtPageNum),
     data_frames: BTreeMap<VirtPageNum, FrameTracker>,
     map_perm: MapPermission,
     map_type: MapType,
@@ -80,16 +81,27 @@ impl MapArea {
             cur_vpn = VirtPageNum(cur_vpn.0 + 1);
         }
     }
+
+    pub fn from_existed_map_area(another: &MapArea) -> Self {
+        Self {
+            vpn_range: another.vpn_range,
+            data_frames: BTreeMap::new(),
+            map_perm: another.map_perm,
+            map_type: another.map_type,
+            area_type: another.area_type,
+        }
+    }
 }
 
 /// kernel area uses direct mapping
 /// user area uses frame mapping
-#[derive(PartialEq, Eq, Debug)]
+#[derive(PartialEq, Eq, Debug, Copy, Clone)]
 pub enum MapType {
     Direct,
     Framed,
 }
 
+#[derive(PartialEq, Eq, Debug, Copy, Clone)]
 pub enum AreaType {
     /// Segments from elf file, e.g. text, rodata, data, bss
     Elf,
@@ -111,6 +123,7 @@ pub enum AreaType {
 
 bitflags! {
     /// map permission corresponding to that in pte: `R W X U`
+    #[derive(Clone, Copy)]
     pub struct MapPermission: u16 {
         ///Readable
         const R = 1 << 1;

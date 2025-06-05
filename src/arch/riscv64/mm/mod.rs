@@ -1,8 +1,8 @@
-mod address;
+pub mod address;
 mod frame;
 mod heap_allocator;
 mod map_area;
-mod memory_set;
+pub mod memory_set;
 mod paging;
 
 pub use memory_set::activate_kernel_space;

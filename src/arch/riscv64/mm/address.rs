@@ -68,6 +68,13 @@ impl From<PhysAddr> for usize {
         v.0
     }
 }
+
+impl From<VirtAddr> for usize {
+    fn from(v: VirtAddr) -> Self {
+        v.0
+    }
+}
+
 impl From<PhysPageNum> for usize {
     fn from(v: PhysPageNum) -> Self {
         v.0
@@ -95,6 +102,12 @@ impl From<PhysAddr> for PhysPageNum {
 
 impl From<PhysPageNum> for PhysAddr {
     fn from(v: PhysPageNum) -> Self {
+        Self(v.0 << PAGE_SIZE_BITS)
+    }
+}
+
+impl From<VirtPageNum> for VirtAddr {
+    fn from(v: VirtPageNum) -> Self {
         Self(v.0 << PAGE_SIZE_BITS)
     }
 }
