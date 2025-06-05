@@ -15,6 +15,8 @@ use super::{
 
 /// File system core
 pub struct FileSystem {
+    /// e.g. "ext4"
+    name: String,
     /// Root directory entry
     root: Arc<VfsDentry>,
     /// Inode cache (inode_number -> inode)
@@ -23,13 +25,14 @@ pub struct FileSystem {
 
 impl FileSystem {
     /// Creates a new file system instance with the given root inode
-    pub fn new(root_inode: Arc<dyn VfsInode>) -> VfsResult<Self> {
+    pub fn new(root_inode: Arc<dyn VfsInode>, name: String) -> VfsResult<Self> {
         // Verify root is a directory
         if root_inode.metadata()?.file_type != VfsFileType::Directory {
             return Err(VfsError::NotDir);
         }
         let root_dentry = Arc::new(VfsDentry::new("/", Some(root_inode), Weak::new()));
         Ok(FileSystem {
+            name,
             root: root_dentry,
             inode_cache: Mutex::new(BTreeMap::new()),
         })
@@ -73,6 +76,10 @@ impl FileSystem {
         let (parent_path, name) = split_path(path)?;
         let parent = self.lookup_path(&parent_path)?;
         VfsDentry::remove(&parent, name)
+    }
+
+    pub fn name(&self) -> &str {
+        &self.name
     }
 }
 

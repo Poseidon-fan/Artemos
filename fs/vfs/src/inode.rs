@@ -1,6 +1,8 @@
 use alloc::{string::String, sync::Arc, vec::Vec};
 use core::{any::Any, mem::size_of};
 
+use crate::filesystem::FileSystem;
+
 use super::ftype::{VfsError, VfsFileType, VfsResult};
 
 /// VFS inode trait
@@ -59,7 +61,7 @@ pub trait VfsInode: Any + Send + Sync {
     }
 
     /// Gets the associated file system
-    fn fs(&self) -> Arc<VfsSuperBlock>;
+    fn fs(&self) -> Arc<FileSystem>;
 
     /// Supports dynamic type casting
     fn as_any_ref(&self) -> &dyn Any;
@@ -93,12 +95,6 @@ pub struct Metadata {
 }
 /// Ensure metadata size is reasonable
 const _: () = assert!(size_of::<Metadata>() <= 64, "Metadata size too large");
-
-/// VFS super block
-pub struct VfsSuperBlock {
-    fs_type: String, /* e.g., "ext4", "fat32"
-                      * File system specific data (e.g., ext4_rs::Ext4 in future) */
-}
 
 impl dyn VfsInode {
     /// Downcasts the inode to a specific type

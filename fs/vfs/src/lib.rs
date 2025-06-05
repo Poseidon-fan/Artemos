@@ -1,8 +1,8 @@
 #![no_std]
 
 extern crate alloc;
-mod dentry;
+pub mod dentry;
 pub mod device;
-mod filesystem;
-mod ftype;
-mod inode;
+pub mod filesystem;
+pub mod ftype;
+pub mod inode;
