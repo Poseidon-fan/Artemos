@@ -8,16 +8,16 @@ use lazy_static::lazy_static;
 use spin::Mutex;
 
 use super::tcb::ThreadControlBlock;
-use crate::arch::{mm::memory_set::MemorySet, sync::up::UPSafeCell, utils::QueueAllocator};
+use crate::arch::{mm::memory_set::MemorySet, utils::QueueAllocator};
 
 
 pub struct ProcessControlBlock {
     pid: Pid,
-    inner: UPSafeCell<ProcessControlBlockInner>,
+    inner: Mutex<ProcessControlBlockInner>,
 }
 
-struct ProcessControlBlockInner {
-    parent: Option<Weak<Mutex<ProcessControlBlock>>>,
+pub struct ProcessControlBlockInner {
+    parent: Option<Weak<ProcessControlBlock>>,
     children: Vec<Arc<ProcessControlBlock>>,
     status: ProcessStatus,
     exit_code: i32,
@@ -60,7 +60,7 @@ impl ProcessControlBlock {
         let process = Arc::new(ProcessControlBlock {
             pid,
             inner: unsafe {
-                UPSafeCell::new(ProcessControlBlockInner {
+                Mutex::new(ProcessControlBlockInner {
                     parent: None,
                     children: Vec::new(),
                     status: ProcessStatus::Running,
@@ -75,19 +75,19 @@ impl ProcessControlBlock {
         process
     }
 
-    pub fn inner_exclusive_access(&self) -> RefMut<ProcessControlBlockInner> {
-        self.inner.exclusive_access()
+    pub fn inner_exclusive_access(&self) -> spin::MutexGuard<'_, ProcessControlBlockInner> {
+        self.inner.lock()
     }
 
     pub fn fork(self: &Arc<Self>) -> Arc<Self> {
-        let parent = self.inner_exclusive_access();
+        let mut parent = self.inner_exclusive_access();
         let pid = pid_alloc();
         let memory_set = MemorySet::from_existed_user_space(&parent.memory);
 
         let child = Arc::new(ProcessControlBlock {
             pid,
             inner: unsafe {
-                UPSafeCell::new(ProcessControlBlockInner {
+                Mutex::new(ProcessControlBlockInner {
                     parent: Some(Arc::downgrade(self)),
                     children: Vec::new(),
                     status: ProcessStatus::Running,
@@ -110,7 +110,7 @@ impl ProcessControlBlock {
         // remember to drop the lock of child_inner
         drop(child_inner);
 
-        Self::add_thread(main_thread);
+        // Self::add_thread(main_thread);
         child
     }
 

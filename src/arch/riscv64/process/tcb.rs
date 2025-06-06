@@ -1,20 +1,19 @@
 use alloc::sync::{Arc, Weak};
 use core::cell::RefMut;
 
+use spin::Mutex;
+
 use super::pcb::ProcessControlBlock;
-use crate::arch::{
-    process::{context::ThreadContext, thread_user_res::ThreadUserRes},
-    sync::up::UPSafeCell,
-};
+use crate::arch::process::{context::ThreadContext, thread_user_res::ThreadUserRes};
 
 // todo: kstack
 pub struct ThreadControlBlock {
     process: Weak<ProcessControlBlock>,
-    inner: UPSafeCell<ThreadControlBlockInner>,
+    inner: Mutex<ThreadControlBlockInner>,
 }
 
 // todo: how to design trap context
-struct ThreadControlBlockInner {
+pub struct ThreadControlBlockInner {
     res: Option<ThreadUserRes>,
     thread_context: ThreadContext,
     thread_status: ThreadStatus,
@@ -28,15 +27,15 @@ struct ThreadControlBlockInner {
 // }
 
 impl ThreadControlBlock {
-    pub fn inner_exclusive_access(&self) -> RefMut<'_, ThreadControlBlockInner> {
-        self.inner.exclusive_access()
+    pub fn inner_exclusive_access(&self) -> spin::MutexGuard<'_, ThreadControlBlockInner> {
+        self.inner.lock()
     }
 
     pub fn new(process: Arc<ProcessControlBlock>, user_stack_base: usize) -> Self {
         let res = ThreadUserRes::new(process.clone(), user_stack_base);
         Self {
             process: Arc::downgrade(&process),
-            inner: UPSafeCell::new(ThreadControlBlockInner {
+            inner: Mutex::new(ThreadControlBlockInner {
                 res: Some(res),
                 thread_context: ThreadContext::zero_init(),
                 thread_status: ThreadStatus::Ready,

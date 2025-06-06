@@ -204,10 +204,12 @@ impl MemorySet {
         let mut memory_set = Self::new_bare();
         for area in user_space.areas.iter() {
             let new_area = MapArea::from_existed_map_area(area);
+            let vpn_start = new_area.vpn_range.0.0;
+            let vpn_end = new_area.vpn_range.1.0;
             // todo: how to set offset
             memory_set.push(new_area, None, 0);
 
-            for vpn in new_area.vpn_range.0.0..new_area.vpn_range.1.0 {
+            for vpn in vpn_start..vpn_end {
                 let vpn = VirtPageNum(vpn);
                 let src_ppn = user_space.page_table.translate(vpn).unwrap().ppn();
                 let dst_ppn = memory_set.page_table.translate(vpn).unwrap().ppn();
