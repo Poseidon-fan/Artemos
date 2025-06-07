@@ -50,6 +50,10 @@ impl VirtAddr {
     pub fn ceil(&self) -> VirtPageNum {
         VirtPageNum((self.0 - 1 + PAGE_SIZE) / PAGE_SIZE)
     }
+
+    pub fn page_offset(&self) -> usize {
+        self.0 & (PAGE_SIZE - 1)
+    }
 }
 
 impl From<usize> for PhysAddr {

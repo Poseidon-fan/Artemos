@@ -66,7 +66,7 @@ impl MapArea {
 
         let mut start: usize = 0;
         let mut page_offset: usize = offset;
-        let mut cur_vpn = self.vpn_range.0;
+        let mut cur_vpn = self.vpn_range_begin();
         let len = data.len();
         loop {
             let src = &data[start..len.min(start + PAGE_SIZE - page_offset)];
@@ -78,7 +78,7 @@ impl MapArea {
             if start >= len {
                 break;
             }
-            cur_vpn = VirtPageNum(cur_vpn.0 + 1);
+            cur_vpn.0 += 1;
         }
     }
 
@@ -90,6 +90,14 @@ impl MapArea {
             map_type: another.map_type,
             area_type: another.area_type,
         }
+    }
+
+    pub fn vpn_range_begin(&self) -> VirtPageNum {
+        self.vpn_range.0
+    }
+
+    pub fn vpn_range_end(&self) -> VirtPageNum {
+        self.vpn_range.1
     }
 }
 

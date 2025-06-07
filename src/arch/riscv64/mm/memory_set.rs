@@ -4,6 +4,7 @@ use core::arch::asm;
 use log::info;
 use riscv::register::satp::{self, Satp};
 use spin::{Lazy, Mutex};
+use xmas_elf::ElfFile;
 
 use super::{address::VirtAddr, map_area::MapArea, paging::page_table::PageTable};
 use crate::arch::{
@@ -151,6 +152,49 @@ impl MemorySet {
         }
     }
 
+    fn map_elf(&mut self, elf: &ElfFile, offset: VirtAddr) -> (VirtPageNum, VirtAddr) {
+        let elf_header = elf.header;
+        let ph_count = elf_header.pt2.ph_count();
+
+        let mut max_end_vpn = offset.floor();
+        // header va is the start va of the first loadable segment
+        let mut header_va = 0;
+        let mut has_found_header_va = false;
+
+        for i in 0..ph_count {
+            let ph = elf.program_header(i).unwrap();
+            if ph.get_type().unwrap() == xmas_elf::program::Type::Load {
+                // get segment start va and end va
+                let start_va: VirtAddr = (ph.virtual_addr() as usize + offset.0).into();
+                let end_va: VirtAddr = ((ph.virtual_addr() + ph.mem_size()) as usize + offset.0).into();
+                if !has_found_header_va {
+                    header_va = start_va.0;
+                    has_found_header_va = true;
+                }
+                let mut map_perm = MapPermission::U;
+                let ph_flags = ph.flags();
+                if ph_flags.is_read() {
+                    map_perm |= MapPermission::R;
+                }
+                if ph_flags.is_write() {
+                    map_perm |= MapPermission::W;
+                }
+                if ph_flags.is_execute() {
+                    map_perm |= MapPermission::X;
+                }
+                let map_area = MapArea::new(start_va, end_va, MapType::Framed, map_perm, AreaType::Elf);
+                let data_offset = start_va.page_offset();
+                max_end_vpn = map_area.vpn_range_end();
+                self.push(
+                    map_area,
+                    Some(&elf.input[ph.offset() as usize..(ph.offset() + ph.file_size()) as usize]),
+                    data_offset,
+                );
+            }
+        }
+        (max_end_vpn, header_va.into())
+    }
+
     // Create a new memory set from an elf file
     // return the memory set, the entry point and the user stack base
     pub fn from_elf(elf_data: &[u8]) -> (Self, usize, usize) {
@@ -166,46 +210,15 @@ impl MemorySet {
         // load program headers
         let ph_count = elf_header.pt2.ph_count();
         let entry_point = elf_header.pt2.entry_point() as usize;
-        let mut max_end_vpn = VirtPageNum(0);
+        let (max_end_vpn, _head_va) = memory_set.map_elf(&elf, VirtAddr(0));
 
-        for i in 0..ph_count {
-            // get program header
-            let ph = elf.program_header(i).unwrap();
-            // if this program header is need to be loaded
-            if ph.get_type().unwrap() == xmas_elf::program::Type::Load {
-                let start_va: VirtAddr = (ph.virtual_addr() as usize).into();
-                let end_va: VirtAddr = ((ph.virtual_addr() + ph.mem_size()) as usize).into();
-
-                let mut map_perm = MapPermission::U;
-                let ph_flags = ph.flags();
-                if ph_flags.is_read() {
-                    map_perm |= MapPermission::R;
-                }
-                if ph_flags.is_write() {
-                    map_perm |= MapPermission::W;
-                }
-                if ph_flags.is_execute() {
-                    map_perm |= MapPermission::X;
-                }
-
-                let map_area = MapArea::new(start_va.into(), end_va.into(), MapType::Framed, map_perm, AreaType::Elf);
-                max_end_vpn = map_area.vpn_range.1;
-                let map_offset = start_va.0 - start_va.floor().0 * PAGE_SIZE;
-                memory_set.push(
-                    map_area,
-                    Some(&elf_data[ph.offset() as usize..ph.offset() as usize + ph.file_size() as usize]),
-                    map_offset,
-                );
-            }
-        }
 
         let max_end_va: VirtAddr = max_end_vpn.into();
-        let mut user_stack_base: usize = max_end_va.into();
-        user_stack_base += PAGE_SIZE;
+        let mut user_heap_bottom: usize = max_end_va.into();
+        user_heap_bottom += PAGE_SIZE;
 
-        (memory_set, entry_point, user_stack_base)
+        (memory_set, entry_point, user_heap_bottom)
     }
-
 }
 
 unsafe extern "C" {
