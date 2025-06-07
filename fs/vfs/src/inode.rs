@@ -2,7 +2,6 @@ use alloc::{string::String, sync::Arc, vec::Vec};
 use core::{any::Any, mem::size_of};
 
 use super::ftype::{VfsError, VfsFileType, VfsResult};
-use crate::superblock::SuperBlock;
 
 /// VFS inode trait
 pub trait VfsInode: Any + Send + Sync {

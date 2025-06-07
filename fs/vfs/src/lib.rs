@@ -2,7 +2,7 @@
 
 extern crate alloc;
 pub mod dentry;
-pub mod device;
+pub mod file;
 pub mod ftype;
 pub mod inode;
 pub mod superblock;
