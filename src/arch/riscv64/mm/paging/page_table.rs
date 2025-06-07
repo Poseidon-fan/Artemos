@@ -1,11 +1,9 @@
 use alloc::{vec, vec::Vec};
 
 use super::pte::{PTEFlags, PageTableEntry};
-use crate::arch::mm::{
-    address::{PhysPageNum, VirtPageNum},
-    frame::{FrameTracker, frame_alloc},
-    paging::pte,
-};
+use crate::arch::{config::KERNEL_PGNUM_OFFSET, mm::{
+    address::{PhysPageNum, VirtPageNum}, frame::{frame_alloc, FrameTracker}, memory_set::KERNEL_SPACE
+}};
 
 pub struct PageTable {
     root_ppn: PhysPageNum,
@@ -17,6 +15,19 @@ impl PageTable {
     pub fn new() -> Self {
         let frame = frame_alloc().unwrap();
         Self {
+            root_ppn: frame.ppn,
+            frames: vec![frame],
+        }
+    }
+
+    pub fn new_from_kernel() -> Self {
+        let frame = frame_alloc().unwrap();
+        let locked_kernel = KERNEL_SPACE.lock();
+        let kernel_root_ppn = locked_kernel.page_table.root_ppn;
+        // 第一级页表
+        let index = VirtPageNum(KERNEL_PGNUM_OFFSET).indexes()[0];
+        frame.ppn.pte_array()[index..].copy_from_slice(&kernel_root_ppn.pte_array()[index..]);
+        PageTable {
             root_ppn: frame.ppn,
             frames: vec![frame],
         }

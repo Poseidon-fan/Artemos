@@ -22,8 +22,8 @@ pub fn activate_kernel_space() {
 }
 
 pub struct MemorySet {
-    page_table: PageTable,
-    areas: Vec<MapArea>,
+    pub page_table: PageTable,
+    pub areas: Vec<MapArea>,
 }
 
 impl MemorySet {
@@ -136,6 +136,13 @@ impl MemorySet {
         memory_set
     }
 
+    pub fn new_from_kernel() -> Self {
+        Self {
+            page_table: PageTable::new_from_kernel(),
+            areas: Vec::new(),
+        }
+    }
+
     pub fn activate(&self) {
         let satp = self.page_table.token();
         unsafe {
@@ -147,7 +154,7 @@ impl MemorySet {
     // Create a new memory set from an elf file
     // return the memory set, the entry point and the user stack base
     pub fn from_elf(elf_data: &[u8]) -> (Self, usize, usize) {
-        let mut memory_set = Self::new_bare();
+        let mut memory_set = Self::new_from_kernel();
 
         let elf = xmas_elf::ElfFile::new(elf_data).unwrap();
         let elf_header = elf.header;
@@ -199,25 +206,6 @@ impl MemorySet {
         (memory_set, entry_point, user_stack_base)
     }
 
-    // todo: 地址空间嗯映射就可以了吗
-    pub fn from_existed_user_space(user_space: &Self) -> Self {
-        let mut memory_set = Self::new_bare();
-        for area in user_space.areas.iter() {
-            let new_area = MapArea::from_existed_map_area(area);
-            let vpn_start = new_area.vpn_range.0.0;
-            let vpn_end = new_area.vpn_range.1.0;
-            // todo: how to set offset
-            memory_set.push(new_area, None, 0);
-
-            for vpn in vpn_start..vpn_end {
-                let vpn = VirtPageNum(vpn);
-                let src_ppn = user_space.page_table.translate(vpn).unwrap().ppn();
-                let dst_ppn = memory_set.page_table.translate(vpn).unwrap().ppn();
-                dst_ppn.bytes_array().copy_from_slice(src_ppn.bytes_array());
-            }
-        }
-        memory_set
-    }
 }
 
 unsafe extern "C" {
