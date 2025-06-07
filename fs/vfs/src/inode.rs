@@ -1,9 +1,8 @@
 use alloc::{string::String, sync::Arc, vec::Vec};
 use core::{any::Any, mem::size_of};
 
-use crate::filesystem::FileSystem;
-
 use super::ftype::{VfsError, VfsFileType, VfsResult};
+use crate::superblock::SuperBlock;
 
 /// VFS inode trait
 pub trait VfsInode: Any + Send + Sync {
@@ -13,14 +12,19 @@ pub trait VfsInode: Any + Send + Sync {
     /// Writes data to the inode at the given offset
     fn write_at(&self, offset: usize, buf: &[u8]) -> VfsResult<usize>;
 
-    /// Looks up a name in a directory, returning the child inode
+    /// Looks up a name in a directory, returning the child.
     fn lookup(&self, name: &str) -> VfsResult<Arc<dyn VfsInode>>;
 
-    /// Creates a new file, directory, or symlink in a directory
-    fn create(&self, name: &str, file_type: VfsFileType, permissions: u16) -> VfsResult<Arc<dyn VfsInode>>;
+    /// Creates a new file, directory, or symlink in a *directory*
+    ///
+    /// Note: `path` must be whole path like "aaa/bbb" instead of "bbb". The correctness should be
+    /// controlled by caller.
+    fn create(&self, path: &str, filetype: VfsFileType, permissions: u16) -> VfsResult<Arc<dyn VfsInode>>;
 
     /// Removes a file or directory
-    fn remove(&self, name: &str) -> VfsResult<()>;
+    /// Note: `path` must be whole path like "aaa/bbb" instead of "bbb". The correctness should be
+    /// controlled by caller.
+    fn remove(&self, path: &str) -> VfsResult<()>;
 
     /// Gets metadata of the inode
     fn metadata(&self) -> VfsResult<Metadata>;
@@ -36,17 +40,26 @@ pub trait VfsInode: Any + Send + Sync {
     }
 
     /// Creates a hard link
-    fn link(&self, name: &str, other: &Arc<dyn VfsInode>) -> VfsResult<()> {
+    ///
+    /// Note: `path` must be whole path like "aaa/bbb" instead of "bbb". The correctness should be
+    /// controlled by caller.
+    fn link(&self, path: &str, other: &Arc<dyn VfsInode>) -> VfsResult<()> {
         Err(VfsError::NotSupported)
     }
 
     /// Deletes a hard link
-    fn unlink(&self, name: &str) -> VfsResult<()> {
+    ///
+    /// Note: `path` must be whole path like "aaa/bbb" instead of "bbb". The correctness should be
+    /// controlled by caller.
+    fn unlink(&self, path: &str) -> VfsResult<()> {
         Err(VfsError::NotSupported)
     }
 
     /// Renames or moves an inode
-    fn rename(&self, old_name: &str, target: &Arc<dyn VfsInode>, new_name: &str) -> VfsResult<()> {
+    ///
+    /// Note: `path` must be whole path like "aaa/bbb" instead of "bbb". The correctness should be
+    /// controlled by caller.
+    fn rename(&self, old_path: &str, target: &Arc<dyn VfsInode>, new_path: &str) -> VfsResult<()> {
         Err(VfsError::NotSupported)
     }
 
@@ -60,16 +73,17 @@ pub trait VfsInode: Any + Send + Sync {
         Err(VfsError::NotSupported)
     }
 
-    /// Gets the associated file system
-    fn fs(&self) -> Arc<FileSystem>;
+    // /// Gets the associated file system
+    // fn fs(&self) -> Arc<SuperBlock>;
 
-    /// Supports dynamic type casting
-    fn as_any_ref(&self) -> &dyn Any;
+    // /// Supports dynamic type casting
+    // fn as_any_ref(&self) -> &dyn Any;
 
     //? rcore also support `fn poll` to support async. I don't know if it is needed.
 }
 
 /// Metadata of VFS inode
+#[repr(C)]
 #[derive(Debug, Clone, PartialEq)]
 pub struct Metadata {
     /// Unique inode identifier
@@ -80,11 +94,11 @@ pub struct Metadata {
     pub permissions: u16,
     /// File size in bytes
     pub size: u64,
-    /// Creation time (Unix timestamp, seconds)
+    /// Creation time (Unix timestamp, seconds). 0 means not supported or not set.
     pub created_at: u64,
-    /// Last modification time (Unix timestamp, seconds)
+    /// Last modification time (Unix timestamp, seconds). 0 means not supported or not set.
     pub modified_at: u64,
-    /// Last access time (Unix timestamp, seconds)
+    /// Last access time (Unix timestamp, seconds). 0 means not supported or not set.
     pub accessed_at: u64,
     /// Number of hard links
     pub link_count: u16,
@@ -96,9 +110,9 @@ pub struct Metadata {
 /// Ensure metadata size is reasonable
 const _: () = assert!(size_of::<Metadata>() <= 64, "Metadata size too large");
 
-impl dyn VfsInode {
-    /// Downcasts the inode to a specific type
-    pub fn downcast_ref<T: VfsInode>(&self) -> Option<&T> {
-        self.as_any_ref().downcast_ref::<T>()
-    }
-}
+// impl dyn VfsInode {
+// /// Downcasts the inode to a specific type
+// pub fn downcast_ref<T: VfsInode>(&self) -> Option<&T> {
+//     self.as_any_ref().downcast_ref::<T>()
+// }
+// }

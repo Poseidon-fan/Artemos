@@ -14,7 +14,7 @@ use super::{
 };
 
 /// File system core
-pub struct FileSystem {
+pub struct SuperBlock {
     /// e.g. "ext4"
     name: String,
     /// Root directory entry
@@ -23,7 +23,7 @@ pub struct FileSystem {
     inode_cache: Mutex<BTreeMap<u64, Arc<dyn VfsInode>>>,
 }
 
-impl FileSystem {
+impl SuperBlock {
     /// Creates a new file system instance with the given root inode
     pub fn new(root_inode: Arc<dyn VfsInode>, name: String) -> VfsResult<Self> {
         // Verify root is a directory
@@ -31,7 +31,7 @@ impl FileSystem {
             return Err(VfsError::NotDir);
         }
         let root_dentry = Arc::new(VfsDentry::new("/", Some(root_inode), Weak::new()));
-        Ok(FileSystem {
+        Ok(SuperBlock {
             name,
             root: root_dentry,
             inode_cache: Mutex::new(BTreeMap::new()),

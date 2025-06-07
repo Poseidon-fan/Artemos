@@ -3,7 +3,7 @@
 pub enum VfsError {
     NotFound,     // File or directory not found
     IoError,      // I/O error
-    Invalid,      // Invalid operation or parameter
+    Invalid,      // Invalid operation, parameter or path
     NotDir,       // Not a directory
     NotFile,      // Not a file
     EntryExist,   // Entry already exists

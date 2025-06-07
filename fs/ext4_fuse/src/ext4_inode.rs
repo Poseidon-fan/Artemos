@@ -1,21 +1,51 @@
+#![allow(const_item_mutation)]
+
 use alloc::sync::Arc;
 
-use spin::Mutex;
 use vfs::inode::{Metadata, VfsInode};
 
-use crate::{device::EXT4, ext4_inode};
+use crate::device::{EXT4, EXT4_RDEV};
+const ROOT_INODE: u32 = 2;
 
 struct Ext4InodeWrapper {
-    /// Ext4 inode's metadata. Include ino. Note that ext4-rs use ino to identify an inode.
-    meta: Metadata,
-    /// Ext4 instance from Ext4_rs. To support multiple filesystem.
-    ext4_instance: Arc<Mutex<ext4_rs::Ext4>>,
+    ino: u32,
 }
+
+/// Convert inode number (u32) to Ext4InodeWrapper
+impl From<u32> for Ext4InodeWrapper {
+    fn from(ino: u32) -> Self {
+        let ext4_inode_ref = EXT4.lock().get_inode_ref(ino);
+        let md = Metadata {
+            inode_number: ext4_inode_ref.inode_num as u64,
+            file_type: trans_inode_type(ext4_inode_ref.inode.file_type().bits()),
+            permissions: ext4_inode_ref.inode.file_perm().bits(),
+            size: ext4_inode_ref.inode.size(),
+            created_at: ext4_inode_ref.inode.ctime() as u64,
+            modified_at: ext4_inode_ref.inode.mtime() as u64,
+            accessed_at: ext4_inode_ref.inode.atime() as u64,
+            link_count: ext4_inode_ref.inode.links_count,
+            flags: ext4_inode_ref.inode.flags(),
+            rdev: EXT4_RDEV,
+        };
+
+        let inode = Ext4InodeWrapper { ino };
+        inode.set_metadata(&md).unwrap();
+        inode
+    }
+}
+
 
 impl VfsInode for Ext4InodeWrapper {
     fn read_at(&self, offset: usize, buf: &mut [u8]) -> vfs::ftype::VfsResult<usize> {
         let ino = self.metadata().unwrap().inode_number as u32; //? I don't know if it's ok to directly 'as u32'
-        let read_data = self.ext4_instance.lock().read_at(ino, offset, buf);
+        let read_data = EXT4.lock().read_at(ino, offset, buf);
+        let old_md = self.metadata().unwrap();
+        // new a metadata, only "accessed_at" is modified
+        let md = Metadata {
+            accessed_at: current_time(),
+            ..old_md
+        };
+        self.set_metadata(&md).unwrap();
         match read_data {
             Ok(size) => Ok(size),
             Err(_) => Err(vfs::ftype::VfsError::IoError),
@@ -23,40 +53,172 @@ impl VfsInode for Ext4InodeWrapper {
     }
 
     fn write_at(&self, offset: usize, buf: &[u8]) -> vfs::ftype::VfsResult<usize> {
-        let ext4 = self.ext4_instance.lock();
         let ino = self.metadata().unwrap().inode_number as u32;
-        match ext4.write_at(ino, offset, buf) {
+        // modify metadata
+        let old_md = self.metadata().unwrap();
+        let md = Metadata {
+            modified_at: current_time(),
+            ..old_md
+        };
+        self.set_metadata(&md).unwrap();
+
+        match EXT4.lock().write_at(ino, offset, buf) {
             Ok(size) => Ok(size),
             Err(_) => Err(vfs::ftype::VfsError::IoError),
         }
     }
 
     fn lookup(&self, name: &str) -> vfs::ftype::VfsResult<std::sync::Arc<dyn VfsInode>> {
-        todo!()
+        // check if is dir
+        if self.metadata().unwrap().file_type != vfs::ftype::VfsFileType::Directory {
+            return Err(vfs::ftype::VfsError::NotDir);
+        }
+        // get child entries
+        let ino = self.metadata().unwrap().inode_number as u32;
+        let child_entries = EXT4.lock().dir_get_entries(ino);
+        // find a child entry with the given name
+        if let Some(entry) = child_entries.iter().find(|&x| x.get_name() == name) {
+            let inode = Ext4InodeWrapper::from(entry.inode);
+            Ok(Arc::new(inode))
+        } else {
+            Err(vfs::ftype::VfsError::NotFound)
+        }
     }
 
     fn create(
         &self,
-        name: &str,
-        file_type: vfs::ftype::VfsFileType,
+        path: &str,
+        filetype: vfs::ftype::VfsFileType,
         permissions: u16,
-    ) -> vfs::ftype::VfsResult<std::sync::Arc<dyn VfsInode>> {
-        todo!()
+    ) -> vfs::ftype::VfsResult<Arc<dyn VfsInode>> {
+        let mut name_off = 0; // name offset. Be used to locate path err.
+        let res = EXT4
+            .lock()
+            .generic_open(path, &mut ROOT_INODE, true, reverse_filetype(filetype), &mut name_off);
+        if res.is_err() {
+            return Err(vfs::ftype::VfsError::IoError);
+        }
+        let inode = res.unwrap();
+        let inode = Ext4InodeWrapper::from(inode);
+        let md = Metadata {
+            inode_number: inode.ino as u64,
+            file_type: filetype,
+            permissions,
+            size: 0,
+            created_at: current_time(),
+            modified_at: current_time(),
+            accessed_at: 0,
+            link_count: 0,
+            flags: 0,
+            rdev: EXT4_RDEV,
+        };
+        inode.set_metadata(&md).unwrap();
+        Ok(Arc::new(inode))
     }
 
-    fn remove(&self, name: &str) -> vfs::ftype::VfsResult<()> {
-        todo!()
+    fn remove(&self, path: &str) -> vfs::ftype::VfsResult<()> {
+        // check file type
+        if self.metadata().unwrap().file_type == vfs::ftype::VfsFileType::Directory {
+            match EXT4.lock().dir_remove(ROOT_INODE, path) {
+                Ok(_) => Ok(()),
+                Err(_) => Err(vfs::ftype::VfsError::IoError),
+            }
+        } else {
+            match EXT4.lock().file_remove(path) {
+                Ok(_) => Ok(()),
+                Err(_) => Err(vfs::ftype::VfsError::IoError),
+            }
+        }
     }
 
     fn metadata(&self) -> vfs::ftype::VfsResult<vfs::inode::Metadata> {
-        todo!()
+        let ino_ref = EXT4.lock().get_inode_ref(self.ino);
+        let md = Metadata {
+            inode_number: ino_ref.inode_num as u64,
+            file_type: trans_inode_type(ino_ref.inode.file_type().bits()),
+            permissions: ino_ref.inode.file_perm().bits(),
+            size: ino_ref.inode.size(),
+            created_at: ino_ref.inode.ctime() as u64,
+            modified_at: ino_ref.inode.mtime() as u64,
+            accessed_at: ino_ref.inode.atime() as u64,
+            link_count: ino_ref.inode.links_count,
+            flags: ino_ref.inode.flags(),
+            rdev: 0,
+        };
+        Ok(md)
     }
 
-    fn fs(&self) -> std::sync::Arc<vfs::filesystem::FileSystem> {
-        todo!()
+    fn set_metadata(&self, md: &Metadata) -> vfs::ftype::VfsResult<()> {
+        // Note: MUST set ext4_rs's metadata simultaneously!
+        let ino = self.metadata().unwrap().inode_number as u32;
+        EXT4.lock().fuse_setattr(
+            ino as u64,
+            Some(reverse_filetype(md.file_type) as u32),
+            None,
+            None,
+            Some(md.size),
+            Some(md.accessed_at as u32),
+            Some(md.modified_at as u32),
+            None, //? what's the diff between 'last change' and 'last modified'
+            None,
+            Some(md.created_at as u32),
+            None,
+            None,
+            Some(md.flags),
+        );
+        Ok(())
     }
+}
 
-    fn as_any_ref(&self) -> &dyn std::any::Any {
-        todo!()
+/// Translate ext4 file type to vfs file type
+///
+/// Params:
+/// * `det` - Dir entry type. Ref: ext4_rs/ext4_defs/direntry.r
+fn trans_filetype(det: u8) -> vfs::ftype::VfsFileType {
+    match det {
+        1 => vfs::ftype::VfsFileType::Regular,
+        2 => vfs::ftype::VfsFileType::Directory,
+        3 => vfs::ftype::VfsFileType::CharDev,
+        4 => vfs::ftype::VfsFileType::BlockDev,
+        5 => vfs::ftype::VfsFileType::Fifo,
+        6 => vfs::ftype::VfsFileType::Socket,
+        7 => vfs::ftype::VfsFileType::Symlink,
+        _ => vfs::ftype::VfsFileType::Other,
     }
+}
+
+fn reverse_filetype(ftype: vfs::ftype::VfsFileType) -> u16 {
+    match ftype {
+        vfs::ftype::VfsFileType::Regular => 1,
+        vfs::ftype::VfsFileType::Directory => 2,
+        vfs::ftype::VfsFileType::CharDev => 3,
+        vfs::ftype::VfsFileType::BlockDev => 4,
+        vfs::ftype::VfsFileType::Fifo => 5,
+        vfs::ftype::VfsFileType::Socket => 6,
+        vfs::ftype::VfsFileType::Symlink => 7,
+        _ => 0,
+    }
+}
+
+fn trans_inode_type(itype: u16) -> vfs::ftype::VfsFileType {
+    match itype {
+        0x8000 => vfs::ftype::VfsFileType::Regular,
+        0x4000 => vfs::ftype::VfsFileType::Directory,
+        0xA000 => vfs::ftype::VfsFileType::Symlink,
+        0x1000 => vfs::ftype::VfsFileType::Fifo,
+        0xC000 => vfs::ftype::VfsFileType::Socket,
+        0x6000 => vfs::ftype::VfsFileType::BlockDev,
+        0x2000 => vfs::ftype::VfsFileType::CharDev,
+        _ => vfs::ftype::VfsFileType::Other,
+    }
+}
+
+/// Get unix timestamp
+///
+/// Return:
+/// * `timestamp` - Unix timestamp
+fn current_time() -> u64 {
+    let now = std::time::SystemTime::now();
+    let timestamp = now.duration_since(std::time::UNIX_EPOCH).unwrap();
+    timestamp.as_secs()
 }
