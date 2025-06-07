@@ -7,7 +7,7 @@ use fdt::Fdt;
 use log::info;
 
 use crate::{
-    arch::{config::KERNEL_ADDR_OFFSET, cpu, mm, sbi, system},
+    arch::{config::KERNEL_ADDR_OFFSET, cpu, mm, process, sbi, system},
     logging,
 };
 
@@ -61,6 +61,7 @@ pub fn kernel_main(hart_id: usize, device_tree_vaddr: usize) -> ! {
     cpu::init_local_cpu_context(hart_id);
 
     mm::init();
+    process::init();
 
     // trigger other harts to start
     trigger_other_harts(hart_id, device_tree_vaddr);

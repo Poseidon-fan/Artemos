@@ -2,6 +2,7 @@ mod board;
 mod boot;
 mod cpu;
 mod sbi;
+mod trap;
 
 pub mod config;
 pub mod console;
