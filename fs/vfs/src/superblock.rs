@@ -26,6 +26,11 @@ pub struct SuperBlock {
 
 impl SuperBlock {
     /// Creates a new file system instance with the given root inode
+    ///
+    /// Params:
+    ///
+    /// - `root_inode`: Root inode
+    /// - `name`: Device name. E.g. 'ext4'
     pub fn new(root_inode: Arc<dyn VfsInode>, name: String) -> VfsResult<Self> {
         // Verify root is a directory
         if root_inode.metadata()?.file_type != VfsFileType::Directory {
@@ -41,12 +46,13 @@ impl SuperBlock {
 
     /// Looks up a path, returning the corresponding dentry
     pub fn lookup_path(&self, path: &str) -> VfsResult<Arc<VfsDentry>> {
-        let components: Vec<&str> = path.trim_start_matches('/').split('/').collect();
-        let mut current = self.root.clone();
+        let components: Vec<&str> = path
+            .trim_start_matches('/')
+            .split('/')
+            .filter(|x| !x.is_empty())
+            .collect();
+        let mut current: Arc<VfsDentry> = self.root.clone();
         for component in components {
-            if component.is_empty() {
-                continue;
-            }
             current = VfsDentry::lookup(&current, component)?;
         }
         Ok(current)

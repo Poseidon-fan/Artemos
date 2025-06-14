@@ -5,9 +5,9 @@ use alloc::sync::Arc;
 use vfs::inode::{Metadata, VfsInode};
 
 use crate::device::{EXT4, EXT4_RDEV};
-const ROOT_INODE: u32 = 2;
+const ROOT_INO: u32 = 2;
 
-struct Ext4InodeWrapper {
+pub struct Ext4InodeWrapper {
     ino: u32,
 }
 
@@ -34,6 +34,11 @@ impl From<u32> for Ext4InodeWrapper {
     }
 }
 
+impl Ext4InodeWrapper {
+    pub fn root_inode() -> Self {
+        Ext4InodeWrapper { ino: ROOT_INO }
+    }
+}
 
 impl VfsInode for Ext4InodeWrapper {
     fn read_at(&self, offset: usize, buf: &mut [u8]) -> vfs::ftype::VfsResult<usize> {
@@ -94,7 +99,7 @@ impl VfsInode for Ext4InodeWrapper {
         let mut name_off = 0; // name offset. Be used to locate path err.
         let res = EXT4
             .lock()
-            .generic_open(path, &mut ROOT_INODE, true, reverse_filetype(filetype), &mut name_off);
+            .generic_open(path, &mut ROOT_INO, true, reverse_filetype(filetype), &mut name_off);
         if res.is_err() {
             return Err(vfs::ftype::VfsError::IoError);
         }
@@ -119,7 +124,7 @@ impl VfsInode for Ext4InodeWrapper {
     fn remove(&self, path: &str) -> vfs::ftype::VfsResult<()> {
         // check file type
         if self.metadata().unwrap().file_type == vfs::ftype::VfsFileType::Directory {
-            match EXT4.lock().dir_remove(ROOT_INODE, path) {
+            match EXT4.lock().dir_remove(ROOT_INO, path) {
                 Ok(_) => Ok(()),
                 Err(_) => Err(vfs::ftype::VfsError::IoError),
             }
