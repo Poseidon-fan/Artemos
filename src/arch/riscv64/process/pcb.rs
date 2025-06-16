@@ -8,7 +8,10 @@ use lazy_static::lazy_static;
 use spin::Mutex;
 
 use super::tcb::ThreadControlBlock;
-use crate::arch::{mm::memory_set::MemorySet, utils::QueueAllocator};
+use crate::arch::{
+    mm::memory_set::{self, MemorySet},
+    utils::QueueAllocator,
+};
 
 
 pub struct ProcessControlBlock {
@@ -45,34 +48,28 @@ impl Drop for Pid {
 }
 
 enum ProcessStatus {
-    Running,
+    Normal,
     Zombie,
     Exited,
 }
 
 impl ProcessControlBlock {
-    // only initproc can be created by new
+    // only initproc can be created by hand
     // other process should be created by fork or exec
-    pub fn new_initproc(elf_data: &[u8]) -> Arc<ProcessControlBlock> {
-        let (memory_set, entry_point, user_stack_base) = MemorySet::from_elf(elf_data);
-        // alloc pid
-        let pid = pid_alloc();
-        let process = Arc::new(ProcessControlBlock {
-            pid,
-            inner: unsafe {
-                Mutex::new(ProcessControlBlockInner {
-                    parent: None,
-                    children: Vec::new(),
-                    status: ProcessStatus::Running,
-                    exit_code: 0,
-                    threads: Vec::new(),
-                    tid_allocator: Mutex::new(QueueAllocator::new()),
-                    memory: memory_set,
-                })
-            },
+    pub fn init_initproc(elf_data: &[u8]) -> Arc<Self> {
+        let (memory_set, entry_point, user_heap_bottom) = MemorySet::from_elf(elf_data);
+        let pcb = Arc::new(Self {
+            pid: pid_alloc(),
+            inner: Mutex::new(ProcessControlBlockInner {
+                parent: None,
+                children: Vec::new(),
+                status: ProcessStatus::Normal,
+                exit_code: 0,
+                threads: Vec::new(),
+                tid_allocator: Mutex::new(QueueAllocator::new()),
+                memory: memory_set,
+            }),
         });
-
-        process
     }
 
     pub fn inner_exclusive_access(&self) -> spin::MutexGuard<'_, ProcessControlBlockInner> {
