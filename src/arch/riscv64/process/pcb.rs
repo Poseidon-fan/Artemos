@@ -8,9 +8,13 @@ use lazy_static::lazy_static;
 use spin::Mutex;
 
 use super::tcb::ThreadControlBlock;
-use crate::arch::{
-    mm::memory_set::{self, MemorySet},
-    utils::QueueAllocator,
+use crate::{
+    arch::{
+        mm::memory_set::{self, MemorySet},
+        trap::context::TrapContext,
+        utils::QueueAllocator,
+    },
+    loader::get_app_data_by_name,
 };
 
 
@@ -29,6 +33,14 @@ pub struct ProcessControlBlockInner {
     memory: MemorySet,
     // fd_table: Vec<Option<Arc<File>>>,
     // cwd: Arc<Dir>,
+}
+
+/// Add init process to the manager
+pub fn add_initproc() {
+    let elf_data = get_app_data_by_name("initproc").unwrap();
+
+    let _init_proc = ProcessControlBlock::init_initproc(elf_data);
+    // PROCESS_MANAGER.add_process(_init_proc.pid(), &_init_proc);
 }
 
 struct Pid(usize);
@@ -70,6 +82,7 @@ impl ProcessControlBlock {
                 memory: memory_set,
             }),
         });
+        pcb
     }
 
     pub fn inner_exclusive_access(&self) -> spin::MutexGuard<'_, ProcessControlBlockInner> {

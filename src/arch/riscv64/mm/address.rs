@@ -116,6 +116,13 @@ impl From<VirtPageNum> for VirtAddr {
     }
 }
 
+impl From<VirtAddr> for VirtPageNum {
+    fn from(v: VirtAddr) -> Self {
+        assert_eq!(v.page_offset(), 0);
+        v.floor()
+    }
+}
+
 impl PhysPageNum {
     pub fn bytes_array(&self) -> &'static mut [u8] {
         let pa: PhysAddr = (*self).into();

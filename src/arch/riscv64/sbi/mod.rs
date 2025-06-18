@@ -2,9 +2,12 @@ use core::arch::asm;
 
 mod hsm;
 mod legacy;
+mod timer;
 
 pub use hsm::*;
 pub use legacy::*;
+pub use timer::set_timer;
+
 
 /// general sbi interface
 #[inline(always)]
