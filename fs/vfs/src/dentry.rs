@@ -1,5 +1,6 @@
 use alloc::{
     collections::BTreeMap,
+    format,
     string::{String, ToString},
     sync::{Arc, Weak},
     vec::Vec,
@@ -78,36 +79,55 @@ impl VfsDentry {
 
     /// Creates a new file or directory
     pub fn create(
-        this: &Arc<VfsDentry>,
+        parent: &Arc<VfsDentry>,
         name: &str,
         file_type: VfsFileType,
         permissions: u16,
     ) -> VfsResult<Arc<VfsDentry>> {
         // Validate directory
-        let inode = this.inode.as_ref().ok_or(VfsError::NotFound)?;
-        if inode.metadata()?.file_type != VfsFileType::Directory {
+        let prt_ino = parent.inode.as_ref().ok_or(VfsError::NotFound)?;
+        if prt_ino.metadata()?.file_type != VfsFileType::Directory {
             return Err(VfsError::NotDir);
         }
 
         // Check if entry exists
         {
-            let children = this.children.lock();
+            let children = parent.children.lock();
             if children.contains_key(name) {
                 return Err(VfsError::EntryExist);
             }
         }
 
         // Create inode and dentry
-        let child_inode = inode.create(name, file_type, permissions)?;
+        // Find entire path
+        let mut path = name.to_string();
+        let mut current = parent.clone();
+        loop {
+            if current.name == "/" {
+                break;
+            }
+            match current.parent.upgrade() {
+                Some(parent_arc) => {
+                    // clone the name before moving parent_arc
+                    let parent_name = parent_arc.name.clone();
+                    current = parent_arc;
+                    // concat the path
+                    path = format!("{}/{}", parent_name, path);
+                },
+                None => assert!(false), // No parent
+            }
+        }
+        path = format!("/{}", path);
+        let child_inode = prt_ino.create(&path, file_type, permissions)?;
         let child_dentry = Arc::new(VfsDentry {
             name: name.to_string(),
             inode: Some(child_inode),
-            parent: Arc::downgrade(this),
+            parent: Arc::downgrade(parent),
             children: Mutex::new(BTreeMap::new()),
         });
 
         // Update cache
-        this.children.lock().insert(name.to_string(), child_dentry.clone());
+        parent.children.lock().insert(name.to_string(), child_dentry.clone());
         Ok(child_dentry)
     }
 

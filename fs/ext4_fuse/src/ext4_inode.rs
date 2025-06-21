@@ -96,15 +96,41 @@ impl VfsInode for Ext4InodeWrapper {
         filetype: vfs::ftype::VfsFileType,
         permissions: u16,
     ) -> vfs::ftype::VfsResult<Arc<dyn VfsInode>> {
-        let mut name_off = 0; // name offset. Be used to locate path err.
-        let res = EXT4
-            .lock()
-            .generic_open(path, &mut ROOT_INO, true, reverse_filetype(filetype), &mut name_off);
-        if res.is_err() {
+        let create_result = if filetype == vfs::ftype::VfsFileType::Directory {
+            match EXT4.lock().dir_mk(path) {
+                Ok(ino) => Ok(ino),
+                Err(_) => Err(vfs::ftype::VfsError::IoError),
+            }
+        } else {
+            let name = path.split('/').last().unwrap();
+            let parent_path = path
+                .split('/')
+                .take(path.split('/').count() - 1)
+                .collect::<Vec<_>>()
+                .join("/");
+            let parent_path = if parent_path.is_empty() {
+                "/".to_string()
+            } else {
+                "/".to_string() + &parent_path
+            };
+            let parent_ino = EXT4
+                .lock()
+                .generic_open(&parent_path, &mut ROOT_INO, false, 0, &mut 0)
+                .unwrap();
+
+            match EXT4.lock().create(parent_ino, name, reverse_filetype(filetype)) {
+                Ok(inode_ref) => Ok(inode_ref.inode_num as usize),
+                Err(_) => Err(vfs::ftype::VfsError::IoError),
+            }
+        };
+        if let Err(e) = create_result {
+            return Err(e);
+        }
+        if create_result.is_err() {
             return Err(vfs::ftype::VfsError::IoError);
         }
-        let inode = res.unwrap();
-        let inode = Ext4InodeWrapper::from(inode);
+        let ino = create_result.unwrap();
+        let inode = Ext4InodeWrapper::from(ino as u32);
         let md = Metadata {
             inode_number: inode.ino as u64,
             file_type: filetype,
@@ -158,7 +184,7 @@ impl VfsInode for Ext4InodeWrapper {
         let ino = self.metadata().unwrap().inode_number as u32;
         EXT4.lock().fuse_setattr(
             ino as u64,
-            Some(reverse_filetype(md.file_type) as u32),
+            Some(reverse_filetype(md.file_type) as u32 | md.permissions as u32),
             None,
             None,
             Some(md.size),
@@ -194,13 +220,13 @@ fn trans_filetype(det: u8) -> vfs::ftype::VfsFileType {
 
 fn reverse_filetype(ftype: vfs::ftype::VfsFileType) -> u16 {
     match ftype {
-        vfs::ftype::VfsFileType::Regular => 1,
-        vfs::ftype::VfsFileType::Directory => 2,
-        vfs::ftype::VfsFileType::CharDev => 3,
-        vfs::ftype::VfsFileType::BlockDev => 4,
-        vfs::ftype::VfsFileType::Fifo => 5,
-        vfs::ftype::VfsFileType::Socket => 6,
-        vfs::ftype::VfsFileType::Symlink => 7,
+        vfs::ftype::VfsFileType::Regular => 0x8000,
+        vfs::ftype::VfsFileType::Directory => 0x4000,
+        vfs::ftype::VfsFileType::CharDev => 0x2000,
+        vfs::ftype::VfsFileType::BlockDev => 0x6000,
+        vfs::ftype::VfsFileType::Fifo => 0x1000,
+        vfs::ftype::VfsFileType::Socket => 0x8000 + 0x4000, // 0xC000
+        vfs::ftype::VfsFileType::Symlink => 0xA000,
         _ => 0,
     }
 }

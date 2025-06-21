@@ -1,0 +1,12 @@
+{
+    // Prevent "can't find crate for `test`" error on no_std. Ref: https://github.com/rust-lang/vscode-rust/issues/729
+    // "rust-analyzer.cargo.target": "riscv64gc-unknown-none-elf",
+    // "rust-analyzer.check.targets": [
+    //     "riscv64gc-unknown-none-elf",
+    //     // "loongarch64-unknown-none",
+    // ],
+    // "rust-analyzer.check.command": "clippy",
+    // "rust-analyzer.check.allTargets": false,
+    // "rust-analyzer.cargo.allTargets": false,
+    "rust-analyzer.procMacro.enable": true,
+}

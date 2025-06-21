@@ -1,0 +1,146 @@
+Filesystem volume name:   <none>
+Last mounted on:          <not available>
+Filesystem UUID:          9d434faf-0f37-4b31-8cbd-84bf5e01ba72
+Filesystem magic number:  0xEF53
+Filesystem revision #:    1 (dynamic)
+Filesystem features:      has_journal ext_attr resize_inode dir_index orphan_file filetype extent 64bit flex_bg metadata_csum_seed sparse_super large_file huge_file dir_nlink extra_isize metadata_csum
+Filesystem flags:         signed_directory_hash 
+Default mount options:    user_xattr acl
+Filesystem state:         clean
+Errors behavior:          Continue
+Filesystem OS type:       Linux
+Inode count:              65536
+Block count:              262144
+Reserved block count:     13107
+Overhead clusters:        26713
+Free blocks:              235353
+Free inodes:              65524
+First block:              1
+Block size:               1024
+Fragment size:            1024
+Group descriptor size:    64
+Reserved GDT blocks:      256
+Blocks per group:         8192
+Fragments per group:      8192
+Inodes per group:         2048
+Inode blocks per group:   512
+Flex block group size:    16
+Filesystem created:       Mon Jun 16 20:29:26 2025
+Last mount time:          n/a
+Last write time:          Mon Jun 16 20:29:26 2025
+Mount count:              0
+Maximum mount count:      -1
+Last checked:             Mon Jun 16 20:29:26 2025
+Check interval:           0 (<none>)
+Lifetime writes:          8 MB
+Reserved blocks uid:      0 (user root)
+Reserved blocks gid:      0 (group wheel)
+First inode:              11
+Inode size:               256
+Required extra isize:     32
+Desired extra isize:      32
+Journal inode:            8
+Default directory hash:   half_md4
+Directory Hash Seed:      69b8d966-eafd-4e8c-95ff-c4554758f406
+Journal backup:           inode blocks
+Checksum type:            crc32c
+Checksum:                 0xee0c202a
+Checksum seed:            0x7929c8fb
+Orphan file inode:        12
+Directories:              2
+ Group  0: block bitmap at 260, inode bitmap at 276, inode table at 292
+           143 free blocks, 2036 free inodes, 2 used directories, 2036 unused inodes
+           [Checksum 0xfc6f]
+ Group  1: block bitmap at 261, inode bitmap at 277, inode table at 804
+           7421 free blocks, 2048 free inodes, 0 used directories, 2048 unused inodes
+           [Inode not init, Checksum 0xac99]
+ Group  2: block bitmap at 262, inode bitmap at 278, inode table at 1316
+           8192 free blocks, 2048 free inodes, 0 used directories, 2048 unused inodes
+           [Inode not init, Block not init, Checksum 0x28d3]
+ Group  3: block bitmap at 263, inode bitmap at 279, inode table at 1828
+           7933 free blocks, 2048 free inodes, 0 used directories, 2048 unused inodes
+           [Inode not init, Checksum 0x46ae]
+ Group  4: block bitmap at 264, inode bitmap at 280, inode table at 2340
+           8192 free blocks, 2048 free inodes, 0 used directories, 2048 unused inodes
+           [Inode not init, Block not init, Checksum 0xadf2]
+ Group  5: block bitmap at 265, inode bitmap at 281, inode table at 2852
+           7933 free blocks, 2048 free inodes, 0 used directories, 2048 unused inodes
+           [Inode not init, Checksum 0xc38f]
+ Group  6: block bitmap at 266, inode bitmap at 282, inode table at 3364
+           8192 free blocks, 2048 free inodes, 0 used directories, 2048 unused inodes
+           [Inode not init, Block not init, Checksum 0xe755]
+ Group  7: block bitmap at 267, inode bitmap at 283, inode table at 3876
+           7933 free blocks, 2048 free inodes, 0 used directories, 2048 unused inodes
+           [Inode not init, Checksum 0x8928]
+ Group  8: block bitmap at 268, inode bitmap at 284, inode table at 4388
+           8192 free blocks, 2048 free inodes, 0 used directories, 2048 unused inodes
+           [Inode not init, Block not init, Checksum 0x3e19]
+ Group  9: block bitmap at 269, inode bitmap at 285, inode table at 4900
+           7933 free blocks, 2048 free inodes, 0 used directories, 2048 unused inodes
+           [Inode not init, Checksum 0x5064]
+ Group 10: block bitmap at 270, inode bitmap at 286, inode table at 5412
+           8192 free blocks, 2048 free inodes, 0 used directories, 2048 unused inodes
+           [Inode not init, Block not init, Checksum 0x74be]
+ Group 11: block bitmap at 271, inode bitmap at 287, inode table at 5924
+           8192 free blocks, 2048 free inodes, 0 used directories, 2048 unused inodes
+           [Inode not init, Block not init, Checksum 0x6a95]
+ Group 12: block bitmap at 272, inode bitmap at 288, inode table at 6436
+           8192 free blocks, 2048 free inodes, 0 used directories, 2048 unused inodes
+           [Inode not init, Block not init, Checksum 0x4ec1]
+ Group 13: block bitmap at 273, inode bitmap at 289, inode table at 6948
+           8192 free blocks, 2048 free inodes, 0 used directories, 2048 unused inodes
+           [Inode not init, Block not init, Checksum 0x50ea]
+ Group 14: block bitmap at 274, inode bitmap at 290, inode table at 7460
+           0 free blocks, 2048 free inodes, 0 used directories, 2048 unused inodes
+           [Inode not init, Checksum 0x2f23]
+ Group 15: block bitmap at 275, inode bitmap at 291, inode table at 8452
+           8192 free blocks, 2048 free inodes, 0 used directories, 2048 unused inodes
+           [Inode not init, Block not init, Checksum 0x83d4]
+ Group 16: block bitmap at 131073, inode bitmap at 131089, inode table at 131105
+           0 free blocks, 2048 free inodes, 0 used directories, 2048 unused inodes
+           [Inode not init, Checksum 0x409d]
+ Group 17: block bitmap at 131074, inode bitmap at 131090, inode table at 131617
+           8160 free blocks, 2048 free inodes, 0 used directories, 2048 unused inodes
+           [Inode not init, Checksum 0x1ab3]
+ Group 18: block bitmap at 131075, inode bitmap at 131091, inode table at 132129
+           8192 free blocks, 2048 free inodes, 0 used directories, 2048 unused inodes
+           [Inode not init, Block not init, Checksum 0x217f]
+ Group 19: block bitmap at 131076, inode bitmap at 131092, inode table at 132641
+           8192 free blocks, 2048 free inodes, 0 used directories, 2048 unused inodes
+           [Inode not init, Block not init, Checksum 0x8482]
+ Group 20: block bitmap at 131077, inode bitmap at 131093, inode table at 133153
+           8192 free blocks, 2048 free inodes, 0 used directories, 2048 unused inodes
+           [Inode not init, Block not init, Checksum 0xfe96]
+ Group 21: block bitmap at 131078, inode bitmap at 131094, inode table at 133665
+           8192 free blocks, 2048 free inodes, 0 used directories, 2048 unused inodes
+           [Inode not init, Block not init, Checksum 0x760f]
+ Group 22: block bitmap at 131079, inode bitmap at 131095, inode table at 134177
+           8192 free blocks, 2048 free inodes, 0 used directories, 2048 unused inodes
+           [Inode not init, Block not init, Checksum 0xb431]
+ Group 23: block bitmap at 131080, inode bitmap at 131096, inode table at 134689
+           8192 free blocks, 2048 free inodes, 0 used directories, 2048 unused inodes
+           [Inode not init, Block not init, Checksum 0x4b04]
+ Group 24: block bitmap at 131081, inode bitmap at 131097, inode table at 135201
+           8192 free blocks, 2048 free inodes, 0 used directories, 2048 unused inodes
+           [Inode not init, Block not init, Checksum 0x37b5]
+ Group 25: block bitmap at 131082, inode bitmap at 131098, inode table at 135713
+           7933 free blocks, 2048 free inodes, 0 used directories, 2048 unused inodes
+           [Inode not init, Checksum 0xcf7a]
+ Group 26: block bitmap at 131083, inode bitmap at 131099, inode table at 136225
+           8192 free blocks, 2048 free inodes, 0 used directories, 2048 unused inodes
+           [Inode not init, Block not init, Checksum 0x7d12]
+ Group 27: block bitmap at 131084, inode bitmap at 131100, inode table at 136737
+           7933 free blocks, 2048 free inodes, 0 used directories, 2048 unused inodes
+           [Inode not init, Checksum 0xa8b9]
+ Group 28: block bitmap at 131085, inode bitmap at 131101, inode table at 137249
+           8192 free blocks, 2048 free inodes, 0 used directories, 2048 unused inodes
+           [Inode not init, Block not init, Checksum 0xa2fb]
+ Group 29: block bitmap at 131086, inode bitmap at 131102, inode table at 137761
+           8192 free blocks, 2048 free inodes, 0 used directories, 2048 unused inodes
+           [Inode not init, Block not init, Checksum 0x2a62]
+ Group 30: block bitmap at 131087, inode bitmap at 131103, inode table at 138273
+           8192 free blocks, 2048 free inodes, 0 used directories, 2048 unused inodes
+           [Inode not init, Block not init, Checksum 0xe85c]
+ Group 31: block bitmap at 131088, inode bitmap at 131104, inode table at 138785
+           8191 free blocks, 2048 free inodes, 0 used directories, 2048 unused inodes
+           [Inode not init, Checksum 0x2caf]

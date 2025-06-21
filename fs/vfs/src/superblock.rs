@@ -12,7 +12,7 @@ use super::{
     ftype::{VfsError, VfsFileType, VfsResult},
     inode::VfsInode,
 };
-use crate::file::File;
+use crate::{file::File, inode::Metadata};
 
 /// File system core
 pub struct SuperBlock {
@@ -34,7 +34,13 @@ impl SuperBlock {
     pub fn new(root_inode: Arc<dyn VfsInode>, name: String) -> VfsResult<Self> {
         // Verify root is a directory
         if root_inode.metadata()?.file_type != VfsFileType::Directory {
-            return Err(VfsError::NotDir);
+            // EXT4_RS's BUG! Must change root inode's file type to directory
+            root_inode
+                .set_metadata(&Metadata {
+                    file_type: VfsFileType::Directory,
+                    ..root_inode.metadata()?
+                })
+                .unwrap();
         }
         let root_dentry = Arc::new(VfsDentry::new("/", Some(root_inode), Weak::new()));
         Ok(SuperBlock {
