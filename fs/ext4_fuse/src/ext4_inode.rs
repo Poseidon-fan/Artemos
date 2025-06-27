@@ -113,10 +113,15 @@ impl VfsInode for Ext4InodeWrapper {
             } else {
                 "/".to_string() + &parent_path
             };
-            let parent_ino = EXT4
-                .lock()
-                .generic_open(&parent_path, &mut ROOT_INO, false, 0, &mut 0)
-                .unwrap();
+
+            // might be ext4_rs' bug when parent path is "/"
+            let parent_ino = if parent_path == "/" {
+                ROOT_INO
+            } else {
+                EXT4.lock()
+                    .generic_open(&parent_path, &mut ROOT_INO, false, 0, &mut 0)
+                    .unwrap()
+            };
 
             match EXT4.lock().create(parent_ino, name, reverse_filetype(filetype)) {
                 Ok(inode_ref) => Ok(inode_ref.inode_num as usize),

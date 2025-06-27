@@ -7,6 +7,6 @@ use vfs::{ftype::VfsFileType, superblock::SuperBlock};
 fn test_mkdir() {
     let root_inode = Ext4InodeWrapper::root_inode();
     let ext4_device = SuperBlock::new(Arc::new(root_inode), "ext4".to_string()).unwrap();
-    ext4_device.create("/test", VfsFileType::Directory, 0).unwrap();
+    ext4_device.create("/test", VfsFileType::Regular, 0).unwrap();
     assert!(ext4_device.lookup_path("test").is_ok());
 }

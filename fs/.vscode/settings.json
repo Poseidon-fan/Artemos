@@ -9,4 +9,7 @@
     // "rust-analyzer.check.allTargets": false,
     // "rust-analyzer.cargo.allTargets": false,
     "rust-analyzer.procMacro.enable": true,
+    "lldb.dereferencePointers": true,
+    "lldb.consoleMode": "commands",
+    "lldb.displayFormat": "auto",
 }
